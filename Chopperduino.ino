@@ -1,5 +1,6 @@
 #include <PWMServo.h>
 #include <HardwareSerial.h>
+#include <PID_v1.h>
 
 static const int SERVO_MIN=70;
 static const int SERVO_MAX=110;
@@ -26,20 +27,20 @@ const int PIN_TX=8;
 class IMU
 {
 public:
-  int x;
-  int y;
-  int z;
+  double x;
+  double y;
+  double z;
   int temp;
-  int px;
-  int py;
-  int pz;
+  double px;
+  double py;
+  double pz;
 
   int tripx;
   int tripy;
   int tripz;
-  int orig_x;
-  int orig_y;
-  int orig_z;
+  double orig_x;
+  double orig_y;
+  double orig_z;
 
   
 private:
@@ -148,12 +149,10 @@ protected:
 public:
   CommandProcessor() 
   {
-  
+
   }
 
   virtual void Begin()=0;
-
-  
   virtual int GetChar()=0;
   virtual int Available()=0;
   virtual void PrintLine( const char * szLine )=0;
@@ -190,14 +189,17 @@ public:
     return GetChar();
   }
 
-  void DumpIMU( IMU& imu )
+  void DumpIMU( IMU& imu, int targetZ )
   {
+    Print(":S ");
     Print("x:");
     Print(imu.x);
     Print(" y:");
     Print(imu.y);
     Print(" z:");
     Print(imu.z);
+    Print(" tz:");
+    Print(targetZ);
     Print(" t:");
     PrintLine(imu.temp);
   }
@@ -208,6 +210,13 @@ public:
     Print( t );
     Print( " ZadjPerms=" );
     PrintLine( zAdjusts );
+  }
+  
+  
+void DumpTailRotor( int tail, int targetZ )
+{
+    Print("_currentTailRotor=");
+    PrintLine(tail);
   }
   
   void DumpIMUPrev( IMU& imu )
@@ -411,15 +420,15 @@ private:
     PWMServo _rightServo;
     PWMServo _elevatorServo;
     
-    int _currentPitch;
-    int _currentAileron;
-    int _currentElevator;
+    //int _currentPitch;
+    double _currentAileron;
+    double _currentElevator;
     int _currentThrottle;
-    int _currentTailRotor;
+
     
-    int _target_x;
-    int _target_y;
-    int _target_z;
+    double _target_x;
+    double _target_y;
+
     
     int _override_x;
     int _override_y;
@@ -428,7 +437,18 @@ private:
     int _lastXYAdjust;
     int _lastZAdjust;
     unsigned long _xyAdjustsPerMs;
+    
+    //Define Variables we'll be connecting to
+
+    //Specify the links and initial tuning parameters
+    
+    PID* _pxPID;
+    PID* _pyPID;
+    PID* _pzPID;
+  
 public:
+    double _currentTailRotor;
+    double _target_z;
     unsigned long _zAdjustsPerMs;
     
 public:
@@ -437,6 +457,7 @@ public:
 protected:
       int protectServo( int val )
       {
+
         return max( SERVO_MIN,min( SERVO_MAX, val ));
       }
       
@@ -452,18 +473,12 @@ protected:
       return true;
     }
     
+    _pxPID->Compute();
+    
     
     if( _imu->x ==  _target_x)
       return false;
       
-    if( _imu->x > _target_x )
-    {
-      _currentAileron--;
-    }
-    else
-    {
-      _currentAileron++;
-    }
     return true;
   }
   
@@ -488,17 +503,11 @@ protected:
       return true;
     }
     
+    _pyPID->Compute();
+    
     if( _imu->y == _target_y )
       return false;
       
-    if( _imu->y > _target_y )
-    {
-      _currentElevator++;
-    }
-    else
-    {
-      _currentElevator--;
-    }
     return true;
   }
  
@@ -516,19 +525,11 @@ protected:
       return true;
     }
     
+    
     if( _imu->z == _target_z )
       return false;
-      
-    if( _imu->z > _target_z )
-    {
-      _currentTailRotor--;
-    }
-    else
-    {
-      _currentTailRotor++;
-      if( _currentTailRotor < TAILROTOR_MIN )
-        _currentTailRotor = TAILROTOR_MIN;
-    }
+    
+    _pzPID->Compute();
     return true;
   }
   
@@ -559,7 +560,7 @@ protected:
 public: 
   Navigator( IMU* imu )
   {
-    _currentPitch = SERVO_STARTANGLE;
+    //_currentPitch = SERVO_STARTANGLE;
     _currentAileron = SERVO_STARTANGLE;
     _currentElevator = SERVO_STARTANGLE;
 
@@ -570,6 +571,13 @@ public:
     _zAdjustsPerMs = 300;
     
     _imu = imu;
+    
+    _pxPID = new PID(&_imu->x, &_currentAileron, &_target_x, 2,5,1, DIRECT);
+    _pxPID->SetOutputLimits(SERVO_MIN, SERVO_MAX);
+    _pyPID = new PID(&_imu->y, &_currentElevator, &_target_y, 2,5,1, DIRECT);
+    _pyPID->SetOutputLimits(SERVO_MIN, SERVO_MAX);
+    _pzPID = new PID(&_imu->z, &_currentTailRotor, &_target_z, 2,5,1, DIRECT);
+    _pzPID->SetOutputLimits(TAILROTOR_MIN, TAILROTOR_MAX);
   }
   
   void Initialize()
@@ -668,7 +676,7 @@ public:
     // -255 - 255
   void Yaw( int val )
   {
-    _override_z += val;
+    _override_z = val;
     _override_z = ProtectTailRotor(_override_z);
   }
   
@@ -682,7 +690,7 @@ public:
   
   void AdjustPitchFromThrottle()
   {
-    _currentPitch = -1 * (_currentThrottle / (SERVO_MAX - SERVO_MIN));
+    //_currentPitch = -1 * (_currentThrottle / (SERVO_MAX - SERVO_MIN));
     UpdatePitch();
     
   }
@@ -759,8 +767,9 @@ void loop()
   switch( command.CommandType )
   {
     case Command::Status:
-      commandProcessor.DumpIMU(guide);
+      commandProcessor.DumpIMU(guide, nav._target_z);
       commandProcessor.DumpThrottle(nav.GetCurrentThrottle(), nav._zAdjustsPerMs);
+      commandProcessor.DumpTailRotor(nav._currentTailRotor, nav._target_z);
       break;
     case Command::Bank:
       nav.Bank( command.Value );
@@ -814,10 +823,6 @@ void loop()
       commandProcessor.Print(":ER");
       commandProcessor.PrintLine(command.Value);
     default:
-      /*if( change == true )
-      {
-        commandProcessor.DumpIMUPrev(guide);
-      }*/
       break;
   }
   
