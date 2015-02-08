@@ -203,12 +203,12 @@ public:
     Print(imu.y);
     Print(" z:");
     Print(imu.z);
-    Print(" tx:");
+/*    Print(" tx:");
     Print(targetX);
     Print(" ty:");
     Print(targetY);
     Print(" tz:");
-    Print(targetZ);
+    Print(targetZ);*/
     Print(" t:");
     PrintLine(imu.temp);
   }
@@ -788,10 +788,13 @@ void setup()
 
   // start processing commands
   commandProcessor.Begin();
-  // intiialize the IMU
+
+  // IMU
   nav.SetHome();
+  
   // NAV
   nav.Initialize();
+
 }
 
 void DumpVoltage()
@@ -822,16 +825,12 @@ void BlinkOn()
   digitalWrite(PIN_LED, HIGH);   // set the LED on
 }
 
-static unsigned long lastUpdate=0;
-
 void loop() 
-{
-  if( lastUpdate ==0 )
-    lastUpdate = millis();
-  
+{  
   guide.ReadValues();
   boolean change = guide.HaveChange();
-
+  nav.Navigate();
+   
   Command& command = commandProcessor.GetCommand();
 
   switch( command.CommandType )
@@ -920,17 +919,16 @@ void loop()
         
      }
     }*/
-  }
-   nav.Navigate();
-   if( change == true )
-   {
-     //if( millis() - lastUpdate > 500 )
-     {
+  if( change == true )
+  {
+    //if( millis() - lastUpdate > 500 )
+    {
        //lastUpdate = millis();
      
        commandProcessor.DumpIMU(guide, nav._target_x, nav._target_y, nav._target_z);
      }
    }
+  }
 }
 
 
