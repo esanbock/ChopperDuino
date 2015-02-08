@@ -1,3 +1,4 @@
+
 #include <PWMServo.h>
 #include <HardwareSerial.h>
 #include <PID_v1.h>
@@ -5,7 +6,7 @@
 static const int SERVO_MIN=70;
 static const int SERVO_MAX=110;
 static const int SERVO_STARTANGLE=90;
-static const int TAILROTOR_MIN = 80;
+static const int TAILROTOR_MIN = 100;
 static const int TAILROTOR_MAX = 254;
 static const int THROTTLE_MAX = 255;
 
@@ -38,38 +39,42 @@ public:
   int tripx;
   int tripy;
   int tripz;
-  double orig_x;
-  double orig_y;
-  double orig_z;
 
   
 private:
 
-
+  int realX;
+  int realY;
+  int realZ;
 
 public:
 
   IMU( )
   {
-    tripx = 20;
-    tripy = 20;
-    tripz = 20;  
+    tripx = 0;
+    tripy = 0;
+    tripz = 0;  
   }
-
-  void SetHome()
-  {
-    ReadValues();
-    orig_x = x;
-    orig_y = y;
-    orig_z = z;
-  }
-
 
   void ReadValues()
   {
-    x = analogRead(PIN_IMU_X);
-    y = analogRead(PIN_IMU_Y);
-    z = analogRead(PIN_IMU_Z);
+    realX = analogRead(PIN_IMU_X);
+    realY = analogRead(PIN_IMU_Y);
+    realZ = analogRead(PIN_IMU_Z);
+    
+    if( abs(realX - x) > tripx )
+    {
+      x = (double)realX;
+    }
+    if( abs(realY - y) > tripy )
+    {
+      y = (double)realY;
+    }
+    if( abs(realZ - z) > tripz )
+    {
+      z = (double)realZ;
+    }
+    
     temp = analogRead(PIN_IMU_TEMP);
   }
 
@@ -189,7 +194,7 @@ public:
     return GetChar();
   }
 
-  void DumpIMU( IMU& imu, int targetZ )
+  void DumpIMU( IMU& imu, double targetX, double targetY, double targetZ )
   {
     Print(":S ");
     Print("x:");
@@ -198,6 +203,10 @@ public:
     Print(imu.y);
     Print(" z:");
     Print(imu.z);
+    Print(" tx:");
+    Print(targetX);
+    Print(" ty:");
+    Print(targetY);
     Print(" tz:");
     Print(targetZ);
     Print(" t:");
@@ -355,6 +364,11 @@ public:
     Serial.print( szChars );
   }
   
+  void Print( double num )
+  {
+    Serial.print( num );
+  }
+  
   void Print( int num )
   {
     Serial.print( num );
@@ -420,14 +434,15 @@ private:
     PWMServo _rightServo;
     PWMServo _elevatorServo;
     
-    //int _currentPitch;
+    int _currentPitch;
     double _currentAileron;
     double _currentElevator;
+    double _prevAileron;
+    double _prevElevator;
     int _currentThrottle;
 
+    double _prevTail;
     
-    double _target_x;
-    double _target_y;
 
     
     int _override_x;
@@ -448,16 +463,23 @@ private:
   
 public:
     double _currentTailRotor;
+    double _target_x;
+    double _target_y;
     double _target_z;
     unsigned long _zAdjustsPerMs;
     
 public:
     boolean NavigationEnabled; 
-    
+  void SetHome()
+  {
+    _imu->ReadValues();
+    _target_x = _imu->x;
+    _target_y = _imu->y;
+    _target_z = _imu->z;
+  }
 protected:
       int protectServo( int val )
       {
-
         return max( SERVO_MIN,min( SERVO_MAX, val ));
       }
       
@@ -473,22 +495,35 @@ protected:
       return true;
     }
     
-    _pxPID->Compute();
-    
+    if( _override_x != SERVO_STARTANGLE )
+    {
+      _currentAileron = _override_x;
+      return true;
+    }
     
     if( _imu->x ==  _target_x)
       return false;
+      
+    _pxPID->Compute();
+    
+    if( _currentAileron != _prevAileron )
+    {
+      _prevAileron = _currentAileron;
+      return true;
+      
+    }
+
+
       
     return true;
   }
   
   void UpdateBank()
   {
-    //_currentAileron = protectServo( _currentAileron +  + _currentPitch + (SERVO_STARTANGLE -_currentElevator)  );
-    _currentAileron = protectServo( _currentAileron  );
+    int aileron = protectServo( _currentAileron + (SERVO_STARTANGLE - _currentElevator) + _currentPitch  );
     
-    _leftServo.write( _currentAileron );
-    _rightServo.write( _currentAileron );
+    _leftServo.write( aileron );
+    _rightServo.write( aileron );
   }
   
   boolean AdjustPitch()
@@ -503,19 +538,35 @@ protected:
       return true;
     }
     
-    _pyPID->Compute();
+    if( _override_y != SERVO_STARTANGLE)
+    {
+      _currentElevator = _override_y;
+      return true;
+    }
     
     if( _imu->y == _target_y )
       return false;
       
-    return true;
+    _pyPID->Compute();
+    
+    if( _prevElevator != _currentElevator )
+    {
+      _prevElevator = _currentElevator;
+      return true;
+    }
+
+      
+    return false;
   }
  
   void UpdatePitch()
   {
-    _currentElevator = protectServo( _currentElevator );
-    _elevatorServo.write(_currentElevator);
+    int elevator = protectServo( _currentElevator + _currentPitch  );
+
+    _elevatorServo.write(elevator);
   }
+  
+
   
   boolean AdjustYaw()
   {
@@ -524,13 +575,24 @@ protected:
       _currentTailRotor = _override_z;
       return true;
     }
-    
+        
+    if( _override_z != 0 )
+    {
+      _currentTailRotor = _override_z;
+      return true;
+    }
     
     if( _imu->z == _target_z )
       return false;
     
     _pzPID->Compute();
-    return true;
+    if( _prevTail != _currentTailRotor )
+    {
+      _prevTail = _currentTailRotor;
+      return true;
+    }
+    else
+      return false;
   }
   
   void UpdateYaw()
@@ -560,7 +622,7 @@ protected:
 public: 
   Navigator( IMU* imu )
   {
-    //_currentPitch = SERVO_STARTANGLE;
+    _currentPitch = 0;
     _currentAileron = SERVO_STARTANGLE;
     _currentElevator = SERVO_STARTANGLE;
 
@@ -574,9 +636,9 @@ public:
     
     _pxPID = new PID(&_imu->x, &_currentAileron, &_target_x, 2,5,1, DIRECT);
     _pxPID->SetOutputLimits(SERVO_MIN, SERVO_MAX);
-    _pyPID = new PID(&_imu->y, &_currentElevator, &_target_y, 2,5,1, DIRECT);
+    _pyPID = new PID(&_imu->y, &_currentElevator, &_target_y, 2,5,1, REVERSE);
     _pyPID->SetOutputLimits(SERVO_MIN, SERVO_MAX);
-    _pzPID = new PID(&_imu->z, &_currentTailRotor, &_target_z, 2,5,1, DIRECT);
+    _pzPID = new PID(&_imu->z, &_currentTailRotor, &_target_z, 2,5,1, REVERSE);
     _pzPID->SetOutputLimits(TAILROTOR_MIN, TAILROTOR_MAX);
   }
   
@@ -609,10 +671,15 @@ public:
   
   void Navigate()
   {
-      if( AdjustBank() )    
+      if( AdjustBank() )
+      {
         UpdateBank();
+      }
       if( AdjustPitch() )
+      {
         UpdatePitch();
+        UpdateBank();
+      }
       if( AdjustYaw() )
         UpdateYaw();
   }
@@ -629,7 +696,6 @@ public:
   
   void EmergencyLanding()
   {
-    ResetTargets();
     while( _currentThrottle > 0 )
     {
       SetThrottle( _currentThrottle - 1 );
@@ -645,21 +711,20 @@ public:
       if( value == 0 )
       {
         NavigationEnabled = false;
+        _pxPID->SetMode(MANUAL);
+        _pyPID->SetMode(MANUAL);
+        _pzPID->SetMode(MANUAL);
       }
       if( value == 1 )
       {
         NavigationEnabled = true;
-        ResetTargets();
+        _pxPID->SetMode(AUTOMATIC);
+        _pyPID->SetMode(AUTOMATIC);
+        _pzPID->SetMode(AUTOMATIC);
       }
       
   }
-  
-  void ResetTargets()
-  {
-        _target_x = _imu->orig_x;
-        _target_y = _imu->orig_y;
-        _target_z = _imu->orig_z;
-  }
+
   
   // value in degress.  Change both servos
   void Bank( int val )
@@ -686,13 +751,14 @@ public:
     _currentThrottle = val;
     UpdateThrottle();
     AdjustPitchFromThrottle();
+    UpdatePitch();
+    UpdateBank();
   }
   
   void AdjustPitchFromThrottle()
   {
-    //_currentPitch = -1 * (_currentThrottle / (SERVO_MAX - SERVO_MIN));
+    _currentPitch = _currentThrottle * 5;
     UpdatePitch();
-    
   }
   
 
@@ -723,7 +789,7 @@ void setup()
   // start processing commands
   commandProcessor.Begin();
   // intiialize the IMU
-  guide.SetHome();
+  nav.SetHome();
   // NAV
   nav.Initialize();
 }
@@ -756,8 +822,12 @@ void BlinkOn()
   digitalWrite(PIN_LED, HIGH);   // set the LED on
 }
 
+static unsigned long lastUpdate=0;
+
 void loop() 
 {
+  if( lastUpdate ==0 )
+    lastUpdate = millis();
   
   guide.ReadValues();
   boolean change = guide.HaveChange();
@@ -767,7 +837,7 @@ void loop()
   switch( command.CommandType )
   {
     case Command::Status:
-      commandProcessor.DumpIMU(guide, nav._target_z);
+      commandProcessor.DumpIMU(guide, nav._target_x, nav._target_y, nav._target_z);
       commandProcessor.DumpThrottle(nav.GetCurrentThrottle(), nav._zAdjustsPerMs);
       commandProcessor.DumpTailRotor(nav._currentTailRotor, nav._target_z);
       break;
@@ -806,7 +876,7 @@ void loop()
       commandProcessor.PrintLine( command.Value );
       break;
     case Command::SetHome:
-      guide.SetHome();
+      nav.SetHome();
       commandProcessor.PrintLine("New home set");
       break;
     case Command::SetXYPerMs:
@@ -837,7 +907,7 @@ void loop()
     unsigned long curTime = millis();
     
     // if auto enabled, do emergency landing
-    if( nav.NavigationEnabled && (curTime - commandProcessor.GetLastCommTime()) > 3000 )
+    /*if( nav.NavigationEnabled && (curTime - commandProcessor.GetLastCommTime()) > 3000 )
     {
      if( nav.GetCurrentThrottle() > 0 )
      {
@@ -849,9 +919,18 @@ void loop()
         commandProcessor.PrintLine("Emergency landing due to lost COMM.  I hope nobody died.");
         
      }
-    }
+    }*/
   }
    nav.Navigate();
+   if( change == true )
+   {
+     //if( millis() - lastUpdate > 500 )
+     {
+       //lastUpdate = millis();
+     
+       commandProcessor.DumpIMU(guide, nav._target_x, nav._target_y, nav._target_z);
+     }
+   }
 }
 
 
