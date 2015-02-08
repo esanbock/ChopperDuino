@@ -774,9 +774,9 @@ void setup()
   // Teensy onboard LED
   pinMode(PIN_LED, OUTPUT);
   // IMU pins
-  pinMode(PIN_IMU_X, INPUT);
-  pinMode(PIN_IMU_Y, INPUT);
-  pinMode(PIN_IMU_Z, INPUT);
+  pinMode(PIN_IMU_X, INPUT_PULLUP);
+  pinMode(PIN_IMU_Y, INPUT_PULLUP);
+  pinMode(PIN_IMU_Z, INPUT_PULLUP);
   pinMode(PIN_IMU_TEMP, INPUT);
   // voltage
   pinMode(PIN_VOLTAGE,INPUT);
