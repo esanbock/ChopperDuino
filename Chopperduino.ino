@@ -34,7 +34,7 @@ public:
   int temp;
 
 private:
-  static const int AVGSIZE = 100;
+  static const int AVGSIZE = 40;
   int* _histX;
   int* _histY;
   int* _histZ;
