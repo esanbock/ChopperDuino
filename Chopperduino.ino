@@ -32,17 +32,9 @@ public:
   double y;
   double z;
   int temp;
-  double px;
-  double py;
-  double pz;
 
-  int tripx;
-  int tripy;
-  int tripz;
-
-  
 private:
-  static const int AVGSIZE = 3;
+  static const int AVGSIZE = 100;
   int* _histX;
   int* _histY;
   int* _histZ;
@@ -52,11 +44,15 @@ private:
   int realY;
   int realZ;
 
+  int px;
+  int py;
+  int pz;
+
 protected:
 
 double avg(int* array, int count )
 {
-  int sum=0;
+  double sum=0;
   for( int i=0; i < count; i++ )
   {
     sum += array[i];
@@ -67,11 +63,7 @@ double avg(int* array, int count )
 public:
 
   IMU( )
-  {
-    tripx = 0;
-    tripy = 0;
-    tripz = 0;
-    
+  { 
     _curHist = 0;
     _histX = new int[AVGSIZE];
     _histY = new int[AVGSIZE];
@@ -105,21 +97,21 @@ public:
 
   boolean HaveChange()
   {
-    boolean change;
-    change  = false;
-    if( abs(x-px) > tripx )
+    boolean change = false;
+
+    if( (int)x != px )
     {
-      px = x;
+      px = (int)x;
       change = true;
     }
-    if( abs(y-py) > tripy )
+    if( (int) y!= py )
     {
-      py = y;
+      py = (int)y;
       change = true;
     }  
-    if( abs(z-pz) > tripz )
+    if( (int)z != pz )
     {
-      pz = z;
+      pz = (int)z;
       change =  true;
     }
     return change;
@@ -257,18 +249,7 @@ void DumpTailRotor( int tail, int targetZ )
     Print("_currentTailRotor=");
     PrintLine(tail);
   }
-  
-  void DumpIMUPrev( IMU& imu )
-  {
-    Print("x:");
-    Print(imu.px);
-    Print(" y:");
-    Print(imu.py);
-    Print(" z:");
-    Print(imu.pz);
-    Print(" t:");
-    PrintLine(" ");
-  }
+
   
   void Log( const char * szLine )
   {
@@ -860,6 +841,11 @@ void loop()
   guide.ReadValues();
   boolean change = guide.HaveChange();
   nav.Navigate();
+  
+  if( change == true )
+  {
+    commandProcessor.DumpIMU(guide, nav._target_x, nav._target_y, nav._target_z);
+  }
    
   Command& command = commandProcessor.GetCommand();
 
@@ -949,15 +935,7 @@ void loop()
         
      }
     }*/
-  if( change == true )
-  {
-    //if( millis() - lastUpdate > 500 )
-    {
-       //lastUpdate = millis();
-     
-       commandProcessor.DumpIMU(guide, nav._target_x, nav._target_y, nav._target_z);
-     }
-   }
+  
   }
 }
 
