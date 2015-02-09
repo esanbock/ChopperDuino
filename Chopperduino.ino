@@ -42,10 +42,27 @@ public:
 
   
 private:
-
+  static const int AVGSIZE = 3;
+  int* _histX;
+  int* _histY;
+  int* _histZ;
+  int _curHist;
+  
   int realX;
   int realY;
   int realZ;
+
+protected:
+
+double avg(int* array, int count )
+{
+  int sum=0;
+  for( int i=0; i < count; i++ )
+  {
+    sum += array[i];
+  }
+  return sum / count;
+}
 
 public:
 
@@ -53,7 +70,16 @@ public:
   {
     tripx = 0;
     tripy = 0;
-    tripz = 0;  
+    tripz = 0;
+    
+    _curHist = 0;
+    _histX = new int[AVGSIZE];
+    _histY = new int[AVGSIZE];
+    _histZ = new int[AVGSIZE];
+
+    memset(_histX,0,sizeof(int) * AVGSIZE);
+    memset(_histY,0,sizeof(int) * AVGSIZE);
+    memset(_histZ,0,sizeof(int) * AVGSIZE);
   }
 
   void ReadValues()
@@ -62,18 +88,17 @@ public:
     realY = analogRead(PIN_IMU_Y);
     realZ = analogRead(PIN_IMU_Z);
     
-    if( abs(realX - x) > tripx )
-    {
-      x = (double)realX;
-    }
-    if( abs(realY - y) > tripy )
-    {
-      y = (double)realY;
-    }
-    if( abs(realZ - z) > tripz )
-    {
-      z = (double)realZ;
-    }
+    _curHist++;
+    if( _curHist >= AVGSIZE - 1 )
+      _curHist = 0;
+    
+    _histX[_curHist] = realX;
+    _histY[_curHist] = realY;
+    _histZ[_curHist] = realZ;
+    
+     x = avg(_histX, AVGSIZE);
+     y = avg(_histY, AVGSIZE);
+     z = avg(_histZ, AVGSIZE);
     
     temp = analogRead(PIN_IMU_TEMP);
   }
@@ -100,7 +125,12 @@ public:
     return change;
   }
 
-
+  ~IMU()
+  {
+    delete _histX;
+    delete _histY;
+    delete _histZ;
+  }
 
 };
 
@@ -774,9 +804,9 @@ void setup()
   // Teensy onboard LED
   pinMode(PIN_LED, OUTPUT);
   // IMU pins
-  pinMode(PIN_IMU_X, INPUT_PULLUP);
-  pinMode(PIN_IMU_Y, INPUT_PULLUP);
-  pinMode(PIN_IMU_Z, INPUT_PULLUP);
+  pinMode(PIN_IMU_X, INPUT);
+  pinMode(PIN_IMU_Y, INPUT);
+  pinMode(PIN_IMU_Z, INPUT);
   pinMode(PIN_IMU_TEMP, INPUT);
   // voltage
   pinMode(PIN_VOLTAGE,INPUT);
