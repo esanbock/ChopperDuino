@@ -337,7 +337,7 @@ public:
   }
   void Begin()
   {
-    Serial.begin(9600);
+    Serial.begin(38400);
     PrintLine("start serial");
   }
   
@@ -387,7 +387,7 @@ public:
   }
   void Begin()
   {
-    _uart.begin(9600);
+    _uart.begin(38400);
     PrintLine("start uart");
   }
   
