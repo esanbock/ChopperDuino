@@ -131,8 +131,6 @@ public:
     Pitch,
     NavigationOnOff,
     SetHome,
-    SetXYPerMs,
-    SetZPerMs,
     Echo
   };
   enum CommandValueType
@@ -219,12 +217,10 @@ public:
     PrintLine(imu.temp);
   }
   
-  void DumpThrottle(int t, int zAdjusts)
+  void DumpThrottle(int t)
   {
     Print( "Throttle=" );
-    Print( t );
-    Print( " ZadjPerms=" );
-    PrintLine( zAdjusts );
+    PrintLine( t );
   }
   
   
@@ -293,16 +289,6 @@ void DumpTailRotor( int tail, int targetZ )
             return _command;
         case 'H':
           _command.CommandType = Command::SetHome;
-          return _command;
-        case 'X':
-          _command.CommandType = Command::SetXYPerMs;
-          _command.Value = ReadNum();
-          _command.ChangeType = Command::Absolute;
-          return _command;
-        case 'Z':
-          _command.CommandType = Command::SetZPerMs;
-          _command.Value = ReadNum();
-          _command.ChangeType = Command::Absolute;
           return _command;
         case 'E':
           _command.CommandType = Command::Echo;
@@ -430,28 +416,22 @@ private:
     PWMServo _elevatorServo;
     
     int _currentPitch;
+    
+    // servos
     double _currentAileron;
     double _currentElevator;
     double _prevAileron;
     double _prevElevator;
+    
+    // throttle
     int _currentThrottle;
-
     double _prevTail;
-    
 
-    
     int _override_x;
     int _override_y;
     int _override_z;
-    
-    int _lastXYAdjust;
-    int _lastZAdjust;
-    unsigned long _xyAdjustsPerMs;
-    
-    //Define Variables we'll be connecting to
 
-    //Specify the links and initial tuning parameters
-    
+    //pid
     PID* _pxPID;
     PID* _pyPID;
     PID* _pzPID;
@@ -461,7 +441,6 @@ public:
     double _target_x;
     double _target_y;
     double _target_z;
-    unsigned long _zAdjustsPerMs;
     
 public:
     boolean NavigationEnabled; 
@@ -624,9 +603,6 @@ public:
     _override_x = SERVO_STARTANGLE;
     _override_y = SERVO_STARTANGLE;
     
-    _xyAdjustsPerMs = 50;
-    _zAdjustsPerMs = 300;
-    
     _imu = imu;
     
     _pxPID = new PID(&_imu->x, &_currentAileron, &_target_x, 2,5,1, DIRECT);
@@ -677,16 +653,6 @@ public:
       }
       if( AdjustYaw() )
         UpdateYaw();
-  }
-  
-  void SetXYPerMs( unsigned int adjustsPerMs )
-  {
-    _xyAdjustsPerMs = adjustsPerMs;
-  }
-  
-  void SetZPerMs( unsigned long adjustsPerMs )
-  {
-    _zAdjustsPerMs = adjustsPerMs;
   }
   
   void EmergencyLanding()
@@ -837,7 +803,7 @@ void loop()
   {
     case Command::Status:
       commandProcessor.DumpIMU(guide, nav._target_x, nav._target_y, nav._target_z);
-      commandProcessor.DumpThrottle(nav.GetCurrentThrottle(), nav._zAdjustsPerMs);
+      commandProcessor.DumpThrottle(nav.GetCurrentThrottle());
       commandProcessor.DumpTailRotor(nav._currentTailRotor, nav._target_z);
       break;
     case Command::Bank:
@@ -878,16 +844,7 @@ void loop()
       nav.SetHome();
       commandProcessor.PrintLine("New home set");
       break;
-    case Command::SetXYPerMs:
-      nav.SetXYPerMs( command.Value );
-      commandProcessor.PrintLine("New xy delay = ");
-      commandProcessor.PrintLine( command.Value );
-      break;
-    case Command::SetZPerMs:
-      nav.SetZPerMs( command.Value );
-      commandProcessor.PrintLine("New z delay = ");
-      commandProcessor.PrintLine( command.Value );
-      break;
+
     case Command::Echo:
       commandProcessor.Print(":ER");
       commandProcessor.PrintLine(command.Value);
