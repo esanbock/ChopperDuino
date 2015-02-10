@@ -207,12 +207,6 @@ public:
     Print(imu.y);
     Print(" z:");
     Print(imu.z);
-    /*    Print(" tx:");
-     Print(targetX);
-     Print(" ty:");
-     Print(targetY);
-     Print(" tz:");
-     Print(targetZ);*/
     Print(" t:");
     PrintLine(imu.temp);
   }
