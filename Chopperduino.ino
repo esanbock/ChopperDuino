@@ -35,10 +35,6 @@ public:
 
 private:
   static const int AVGSIZE = 40;
-  int* _histX;
-  int* _histY;
-  int* _histZ;
-  int _curHist;
   
   int realX;
   int realY;
@@ -60,18 +56,16 @@ double avg(int* array, int count )
   return sum / count;
 }
 
+double movingAvg(double currentVal, int newVal, int count )
+{
+  return ( currentVal * count - currentVal + newVal ) / count;
+}
+
 public:
 
   IMU( )
   { 
-    _curHist = 0;
-    _histX = new int[AVGSIZE];
-    _histY = new int[AVGSIZE];
-    _histZ = new int[AVGSIZE];
 
-    memset(_histX,0,sizeof(int) * AVGSIZE);
-    memset(_histY,0,sizeof(int) * AVGSIZE);
-    memset(_histZ,0,sizeof(int) * AVGSIZE);
   }
 
   void ReadValues()
@@ -80,17 +74,9 @@ public:
     realY = analogRead(PIN_IMU_Y);
     realZ = analogRead(PIN_IMU_Z);
     
-    _curHist++;
-    if( _curHist >= AVGSIZE - 1 )
-      _curHist = 0;
-    
-    _histX[_curHist] = realX;
-    _histY[_curHist] = realY;
-    _histZ[_curHist] = realZ;
-    
-     x = avg(_histX, AVGSIZE);
-     y = avg(_histY, AVGSIZE);
-     z = avg(_histZ, AVGSIZE);
+     x = movingAvg(x, realX, AVGSIZE);
+     y = movingAvg(y, realY, AVGSIZE);
+     z = movingAvg(z, realZ, AVGSIZE);
     
     temp = analogRead(PIN_IMU_TEMP);
   }
@@ -119,9 +105,7 @@ public:
 
   ~IMU()
   {
-    delete _histX;
-    delete _histY;
-    delete _histZ;
+
   }
 
 };
