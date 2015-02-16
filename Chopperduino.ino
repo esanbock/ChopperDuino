@@ -24,6 +24,7 @@ const int MIN_VOLTAGE = 590;
 const int PIN_LED = 11;
 const int PIN_RX=7;
 const int PIN_TX=8;
+const int PIN_RPM=13;
 
 class IMU
 {
@@ -780,6 +781,44 @@ void BlinkOn()
 {
   digitalWrite(PIN_LED, HIGH);   // set the LED on
 }
+
+class RPMSensor
+{
+
+public:
+  RPMSensor()
+  {
+    _currentRPM = 0;
+    pinMode(PIN_RPM, INPUT);
+    _lastHall = digitalRead(PIN_RPM);
+    _lastCheck = millis();
+  }
+  
+  int CheckAndGetRPM()
+  {
+    int currentHall = digitalRead(PIN_RPM);
+    if( currentHall == _lastHall )
+      return _currentRPM;
+    unsigned int currentTime = millis();
+    
+    unsigned int span = currentTime - _lastCheck;
+    _currentRPM = span * 30000;
+    
+    _lastHall = currentHall;
+    _lastCheck = currentTime;
+    
+    return _currentRPM;
+  }
+protected:
+  static void increment()
+  {
+    
+  }
+private:
+  unsigned long _lastCheck;
+  int _lastHall;
+  int _currentRPM;
+};
 
 void loop()
 {  
