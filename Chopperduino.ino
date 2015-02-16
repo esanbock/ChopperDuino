@@ -468,11 +468,11 @@ protected:
       return true;
     }
 
-    if( _imu->x ==  _target_x)
-      return false;
-
     _pxPID->Compute();
 
+    if( _imu->x ==  _target_x)
+      return false;
+    
     if( _currentAileron != _prevAileron )
     {
       _prevAileron = _currentAileron;
@@ -487,10 +487,12 @@ protected:
 
   void UpdateBank()
   {
-    int aileron = protectServo( _currentAileron + (SERVO_STARTANGLE - _currentElevator) + _currentPitch  );
+    int elevatorOffset = _currentElevator - SERVO_STARTANGLE;
+    int leftAileron = protectServo( _currentAileron - _currentPitch + elevatorOffset );
+    int rightAileron = protectServo( _currentAileron + _currentPitch - elevatorOffset );
 
-    _leftServo.write( aileron );
-    _rightServo.write( aileron );
+    _leftServo.write( leftAileron );
+    _rightServo.write( rightAileron );
   }
 
   boolean AdjustPitch()
@@ -528,7 +530,7 @@ protected:
 
   void UpdatePitch()
   {
-    int elevator = protectServo( _currentElevator + _currentPitch  );
+    int elevator = protectServo( _currentElevator - _currentPitch  );
 
     _elevatorServo.write(elevator);
   }
@@ -598,7 +600,7 @@ public:
 
     _imu = imu;
 
-    _pxPID = new PID(&_imu->x, &_currentAileron, &_target_x, 2,5,1, DIRECT);
+    _pxPID = new PID(&_imu->x, &_currentAileron, &_target_x, 2,5,1, REVERSE);
     _pxPID->SetOutputLimits(SERVO_MIN, SERVO_MAX);
     _pyPID = new PID(&_imu->y, &_currentElevator, &_target_y, 2,5,1, REVERSE);
     _pyPID->SetOutputLimits(SERVO_MIN, SERVO_MAX);
@@ -711,7 +713,7 @@ public:
 
   void AdjustPitchFromThrottle()
   {
-    _currentPitch = _currentThrottle * 5;
+    _currentPitch =  _currentThrottle * 0.078431372549; //   ((SERVO_MAX - SERVO_STARTANGLE) / THROTTLE_MAX);
     UpdatePitch();
   }
 
