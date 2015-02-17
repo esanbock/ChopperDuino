@@ -86,19 +86,19 @@ public:
   {
     boolean change = false;
 
-    if( (int)x != px )
+    if( (int)x != _px )
     {
-      px = (int)x;
+      _px = (int)x;
       change = true;
     }
-    if( (int) y!= py )
+    if( (int) y!= _py )
     {
-      py = (int)y;
+      _py = (int)y;
       change = true;
     }  
-    if( (int)z != pz )
+    if( (int)z != _pz )
     {
-      pz = (int)z;
+      _pz = (int)z;
       change =  true;
     }
     return change;
