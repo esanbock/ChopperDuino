@@ -719,6 +719,93 @@ public:
   }
 
 
+  void ProcessCommand(Command& command)
+  {
+  
+    switch( command.CommandType )
+    {
+      case Command::Status:
+        commandProcessor.DumpIMU(*_imu, _target_x, _target_y, _target_z);
+        commandProcessor.DumpThrottle(GetCurrentThrottle());
+        commandProcessor.DumpTailRotor(_currentTailRotor, _target_z);
+        break;
+      case Command::Bank:
+        Bank( command.Value );
+        break;
+      case Command::Pitch:
+        Pitch( command.Value );
+        break;
+      case Command::Throttle:
+        // Safety check for low voltage
+        if( GetCurrentThrottle() == 0 )
+        {
+          int currentVolts =  analogRead( PIN_VOLTAGE );
+          if(  currentVolts < MIN_VOLTAGE )
+          {
+            commandProcessor.Print("Low voltage! ");
+            commandProcessor.PrintLine( currentVolts );
+          }
+        }
+        else
+        {
+          SetThrottle( command.Value );
+        }
+        break;
+      
+      case Command::Yaw:
+        Yaw( command.Value );
+        break;
+        
+      case Command::Voltage:
+        DumpVoltage();
+        break;
+      
+      case Command::NavigationOnOff:
+        NavigationOnOff( command.Value );
+        commandProcessor.Print("Navigation set to ");
+        commandProcessor.PrintLine( command.Value );
+        break;
+        
+      case Command::SetHome:
+        SetHome();
+        commandProcessor.PrintLine("New home set");
+        break;
+  
+      case Command::Echo:
+        commandProcessor.Print(":ER");
+        commandProcessor.PrintLine(command.Value);
+        break;
+        
+      default:
+        break;
+    }
+  
+    // Safety check for run-away heli
+    if( command.CommandType != Command::None )
+    {
+      BlinkOn();
+    }
+    else
+    {
+      BlinkOff();
+  
+      // if auto enabled, do emergency landing
+      /*if( nav.NavigationEnabled && (curTime - commandProcessor.GetLastCommTime()) > 3000 )
+       {
+       if( nav.GetCurrentThrottle() > 0 )
+       {
+       nav.EmergencyLanding();
+       commandProcessor.Print(" Current time = " );
+       commandProcessor.Print( curTime );
+       commandProcessor.Print(" LastComm time = " );
+       commandProcessor.Print( commandProcessor.GetLastCommTime() );
+       commandProcessor.PrintLine("Emergency landing due to lost COMM.  I hope nobody died.");
+       
+       }
+       }*/
+  
+    }
+  }
 };
 
 IMU guide;
@@ -791,7 +878,7 @@ public:
     _currentRPM = 0;
     pinMode(PIN_RPM, INPUT);
     _lastHall = digitalRead(PIN_RPM);
-    _lastCheck = millis();
+    _lastSwitch = millis();
   }
   
   int CheckAndGetRPM()
@@ -801,21 +888,18 @@ public:
       return _currentRPM;
     unsigned int currentTime = millis();
     
-    unsigned int span = currentTime - _lastCheck;
+    unsigned int span = currentTime - _lastSwitch;
     _currentRPM = span * 30000;
     
     _lastHall = currentHall;
-    _lastCheck = currentTime;
+    _lastSwitch = currentTime;
     
     return _currentRPM;
   }
 protected:
-  static void increment()
-  {
-    
-  }
+
 private:
-  unsigned long _lastCheck;
+  unsigned long _lastSwitch;
   int _lastHall;
   int _currentRPM;
 };
@@ -832,85 +916,8 @@ void loop()
   }
 
   Command& command = commandProcessor.GetCommand();
-
-  switch( command.CommandType )
-  {
-    case Command::Status:
-    commandProcessor.DumpIMU(guide, nav._target_x, nav._target_y, nav._target_z);
-    commandProcessor.DumpThrottle(nav.GetCurrentThrottle());
-    commandProcessor.DumpTailRotor(nav._currentTailRotor, nav._target_z);
-    break;
-    case Command::Bank:
-    nav.Bank( command.Value );
-    break;
-    case Command::Pitch:
-    nav.Pitch( command.Value );
-    break;
-    case Command::Throttle:
-    nav.SetThrottle( command.Value );
-    // Safety check for low voltage
-    if( nav.GetCurrentThrottle() == 0 )
-    {
-      int currentVolts =  analogRead( PIN_VOLTAGE );
-      if(  currentVolts < MIN_VOLTAGE )
-      {
-        commandProcessor.Print("Low voltage! ");
-        commandProcessor.PrintLine( currentVolts );
-      }
-    }
-    else
-    {
-      //nav.SetThrottle( command.Value );
-    }
-    break;
-    case Command::Yaw:
-    nav.Yaw( command.Value );
-    break;
-    case Command::Voltage:
-    DumpVoltage();
-    break;
-    case Command::NavigationOnOff:
-    nav.NavigationOnOff( command.Value );
-    commandProcessor.Print("Navigation set to ");
-    commandProcessor.PrintLine( command.Value );
-    break;
-    case Command::SetHome:
-    nav.SetHome();
-    commandProcessor.PrintLine("New home set");
-    break;
-
-    case Command::Echo:
-    commandProcessor.Print(":ER");
-    commandProcessor.PrintLine(command.Value);
-  default:
-    break;
-  }
-
-  // Safety check for run-away heli
-  if( command.CommandType != Command::None )
-  {
-    BlinkOn();
-  }
-  else
-  {
-    BlinkOff();
-
-    // if auto enabled, do emergency landing
-    /*if( nav.NavigationEnabled && (curTime - commandProcessor.GetLastCommTime()) > 3000 )
-     {
-     if( nav.GetCurrentThrottle() > 0 )
-     {
-     nav.EmergencyLanding();
-     commandProcessor.Print(" Current time = " );
-     commandProcessor.Print( curTime );
-     commandProcessor.Print(" LastComm time = " );
-     commandProcessor.Print( commandProcessor.GetLastCommTime() );
-     commandProcessor.PrintLine("Emergency landing due to lost COMM.  I hope nobody died.");
-     
-     }
-     }*/
-
-  }
+  
+  nav.ProcessCommand(command);
 }
 
 
