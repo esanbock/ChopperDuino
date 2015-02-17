@@ -37,13 +37,13 @@ public:
 private:
   static const int AVGSIZE = 40;
 
-  int realX;
-  int realY;
-  int realZ;
+  int _realX;
+  int _realY;
+  int _realZ;
 
-  int px;
-  int py;
-  int pz;
+  double _px;
+  double _py;
+  double _pz;
 
 protected:
 
@@ -71,13 +71,13 @@ public:
 
   void ReadValues()
   {
-    realX = analogRead(PIN_IMU_X);
-    realY = analogRead(PIN_IMU_Y);
-    realZ = analogRead(PIN_IMU_Z);
+    _realX = analogRead(PIN_IMU_X);
+    _realY = analogRead(PIN_IMU_Y);
+    _realZ = analogRead(PIN_IMU_Z);
 
-    x = movingAvg(x, realX, AVGSIZE);
-    y = movingAvg(y, realY, AVGSIZE);
-    z = movingAvg(z, realZ, AVGSIZE);
+    x = movingAvg(x, _realX, AVGSIZE);
+    y = movingAvg(y, _realY, AVGSIZE);
+    z = movingAvg(z, _realZ, AVGSIZE);
 
     temp = analogRead(PIN_IMU_TEMP);
   }
