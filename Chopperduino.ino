@@ -638,6 +638,12 @@ public:
 
   void Navigate()
   {
+    if( !IsLinkOk() )
+    {
+      EmergencyLanding();
+      return;
+    }
+    
     if( AdjustBank() )
     {
       UpdateBank();
@@ -653,11 +659,11 @@ public:
 
   void EmergencyLanding()
   {
+    commandProcessor.PrintLine("Emergency Landing!!!");
     while( _currentThrottle > 0 )
     {
       SetThrottle( _currentThrottle - 1 );
       delay( 50 );
-      Navigate();
     }
     NavigationEnabled = false;
     Yaw(0);
@@ -718,6 +724,13 @@ public:
     UpdatePitch();
   }
 
+  bool IsLinkOk()
+  {
+    if( (millis() - commandProcessor.GetLastCommTime()) > 3000 )
+      return false;
+      
+    return true;
+  }
 
   void ProcessCommand(Command& command)
   {
@@ -787,23 +800,7 @@ public:
     }
     else
     {
-      BlinkOff();
-  
-      // if auto enabled, do emergency landing
-      /*if( nav.NavigationEnabled && (curTime - commandProcessor.GetLastCommTime()) > 3000 )
-       {
-       if( nav.GetCurrentThrottle() > 0 )
-       {
-       nav.EmergencyLanding();
-       commandProcessor.Print(" Current time = " );
-       commandProcessor.Print( curTime );
-       commandProcessor.Print(" LastComm time = " );
-       commandProcessor.Print( commandProcessor.GetLastCommTime() );
-       commandProcessor.PrintLine("Emergency landing due to lost COMM.  I hope nobody died.");
-       
-       }
-       }*/
-  
+      BlinkOff(); 
     }
   }
 };
@@ -907,16 +904,14 @@ private:
 void loop()
 {  
   guide.ReadValues();
-  boolean change = guide.HaveChange();
   nav.Navigate();
 
-  if( change == true )
+  if( guide.HaveChange() )
   {
     commandProcessor.DumpIMU(guide, nav._target_x, nav._target_y, nav._target_z);
   }
 
   Command& command = commandProcessor.GetCommand();
-  
   nav.ProcessCommand(command);
 }
 
