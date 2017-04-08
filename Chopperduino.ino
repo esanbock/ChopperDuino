@@ -713,15 +713,14 @@ public:
   {
     _currentThrottle = val;
     UpdateThrottle();
-    AdjustPitchFromThrottle();
+    AdjustCollective();
     UpdatePitch();
     UpdateBank();
   }
 
-  void AdjustPitchFromThrottle()
+  void AdjustCollective()
   {
     _currentPitch =  _currentThrottle * 0.078431372549; //   ((SERVO_MAX - SERVO_STARTANGLE) / THROTTLE_MAX);
-    UpdatePitch();
   }
 
   bool IsLinkOk()
