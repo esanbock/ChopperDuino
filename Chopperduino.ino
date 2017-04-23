@@ -1,4 +1,3 @@
-
 #include <PWMServo.h>
 #include <HardwareSerial.h>
 #include <PID_v1.h>
@@ -16,9 +15,9 @@ const int PIN_IMU_Z = 18;
 const int PIN_IMU_TEMP = 17;
 const int PIN_THROTTLE = 10;
 const int PIN_TAIL = 12;
-const int PIN_SERVO_LEFT = SERVO_PIN_A;
-const int PIN_SERVO_RIGHT = SERVO_PIN_B;
-const int PIN_SERVO_ELEVATOR = SERVO_PIN_C;
+const int PIN_SERVO_LEFT = SERVO_PIN_A; // pin 14, SERVO_2
+const int PIN_SERVO_RIGHT = SERVO_PIN_B; // pin 15, SERVO_3
+const int PIN_SERVO_ELEVATOR = SERVO_PIN_C; // pin 4, SERVO_1
 const int PIN_VOLTAGE = 16;
 const int MIN_VOLTAGE = 590;
 const int PIN_LED = 11;
@@ -731,6 +730,24 @@ public:
     return true;
   }
 
+  void DumpVoltage()
+  {
+    commandProcessor.Print( "V=" );
+    commandProcessor.PrintLine( analogRead( PIN_VOLTAGE ) );
+  }
+
+  
+  void BlinkOff()
+  {
+    digitalWrite(PIN_LED, LOW); 
+  }
+  
+  void BlinkOn()
+  {
+    digitalWrite(PIN_LED, HIGH);   // set the LED on
+  }
+
+
   void ProcessCommand(Command& command)
   {
   
@@ -822,9 +839,9 @@ void setup()
   pinMode(PIN_VOLTAGE,INPUT);
 
   // signal that we're up
-  BlinkOn();
+  nav.BlinkOn();
   delay(1000);              // wait for a second
-  BlinkOff();   // set the LED off
+  nav.BlinkOff();   // set the LED off
 
     // start processing commands
   commandProcessor.Begin();
@@ -837,11 +854,6 @@ void setup()
 
 }
 
-void DumpVoltage()
-{
-  commandProcessor.Print( "V=" );
-  commandProcessor.PrintLine( analogRead( PIN_VOLTAGE ) );
-}
 
 int prevVoltage;
 void DumpVoltageIfChanged()
@@ -855,15 +867,6 @@ void DumpVoltageIfChanged()
   }
 }
 
-void BlinkOff()
-{
-  digitalWrite(PIN_LED, LOW); 
-}
-
-void BlinkOn()
-{
-  digitalWrite(PIN_LED, HIGH);   // set the LED on
-}
 
 class RPMSensor
 {
