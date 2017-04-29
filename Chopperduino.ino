@@ -452,6 +452,7 @@ protected:
 
   boolean AdjustBank()
   {
+    // if navigation is off
     if( !NavigationEnabled )
     {
       if( _currentAileron == _override_x )
@@ -462,27 +463,27 @@ protected:
       return true;
     }
 
+    
+    // manual override while navigating
     if( _override_x != SERVO_STARTANGLE )
     {
       _currentAileron = _override_x;
       return true;
     }
 
-    _pxPID->Compute();
-
-    if( _imu->x ==  _target_x)
-      return false;
-    
-    if( _currentAileron != _prevAileron )
+    // use the PID
+    if( _pxPID->Compute() )
     {
-      _prevAileron = _currentAileron;
+
+      if( _currentAileron != _prevAileron )
+      {
+        _prevAileron = _currentAileron;
+        return true;
+  
+      }
       return true;
-
     }
-
-
-
-    return true;
+    return false;
   }
 
   void UpdateBank()
