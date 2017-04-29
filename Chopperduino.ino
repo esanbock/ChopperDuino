@@ -467,8 +467,14 @@ protected:
     // manual override while navigating
     if( _override_x != SERVO_STARTANGLE )
     {
+      _pxPID->SetMode(MANUAL);
       _currentAileron = _override_x;
       return true;
+    }
+    else
+    {
+      // it's ok to do this repeatedly
+       _pxPID->SetMode(AUTOMATIC);
     }
 
     // use the PID
