@@ -127,7 +127,7 @@ public:
     Yaw,
     Status,
     Voltage,
-    Bank,
+    Roll,
     Pitch,
     NavigationOnOff,
     SetHome,
@@ -265,7 +265,7 @@ public:
           _command.CommandType = Command::Voltage;
           return _command;
         case 'B':
-          _command.CommandType = Command::Bank;
+          _command.CommandType = Command::Roll;
           _command.Value = ReadNum();
           _command.ChangeType = Command::Absolute;
           return _command;
@@ -450,7 +450,7 @@ protected:
     return max( SERVO_MIN,min( SERVO_MAX, val ));
   }
 
-  boolean AdjustBank()
+  boolean AdjustRoll()
   {
     // if navigation is off
     if( !NavigationEnabled )
@@ -492,7 +492,7 @@ protected:
     return false;
   }
 
-  void UpdateBank()
+  void UpdateRoll()
   {
     int elevatorOffset = _currentElevator - SERVO_STARTANGLE;
     int leftAileron = protectServo( _currentAileron - _currentPitch + elevatorOffset );
@@ -631,7 +631,7 @@ public:
     _elevatorServo.attach(PIN_SERVO_ELEVATOR);
 
     UpdatePitch();
-    UpdateBank();
+    UpdateRoll();
 
     SetThrottle(0);
     Yaw(0);
@@ -650,14 +650,14 @@ public:
       return;
     }
     
-    if( AdjustBank() )
+    if( AdjustRoll() )
     {
-      UpdateBank();
+      UpdateRoll();
     }
     if( AdjustPitch() )
     {
       UpdatePitch();
-      UpdateBank();
+      UpdateRoll();
     }
     if( AdjustYaw() )
       UpdateYaw();
@@ -696,7 +696,7 @@ public:
 
 
   // value in degress.  Change both servos
-  void Bank( int val )
+  void Roll( int val )
   {
     _override_x = val;
   }
@@ -721,7 +721,7 @@ public:
     UpdateThrottle();
     AdjustCollective();
     UpdatePitch();
-    UpdateBank();
+    UpdateRoll();
   }
 
   void AdjustCollective()
@@ -765,8 +765,8 @@ public:
         commandProcessor.DumpThrottle(GetCurrentThrottle());
         commandProcessor.DumpTailRotor(_currentTailRotor, _target_z);
         break;
-      case Command::Bank:
-        Bank( command.Value );
+      case Command::Roll:
+        Roll( command.Value );
         break;
       case Command::Pitch:
         Pitch( command.Value );
