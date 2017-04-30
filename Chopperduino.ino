@@ -816,7 +816,7 @@ public:
         break;
     }
   
-    // Safety check for run-away heli
+    // a fun blinker
     if( command.CommandType != Command::None )
     {
       BlinkOn();
@@ -922,6 +922,7 @@ void loop()
 
   Command& command = commandProcessor.GetCommand();
   nav.ProcessCommand(command);
+
 }
 
 
