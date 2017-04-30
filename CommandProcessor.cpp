@@ -15,8 +15,8 @@ unsigned long CommandProcessor::GetLastCommTime()
 int CommandProcessor::ReadNum()
 {
   char num[5];
-  num[3] = NULL;
-  num[4] = NULL;
+  num[3] = (char)NULL;
+  num[4] = (char)NULL;
   num[0] = GetCharBlocking();
   num[1] = GetCharBlocking();
   num[2] = GetCharBlocking();
