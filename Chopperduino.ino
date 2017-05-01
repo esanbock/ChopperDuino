@@ -116,8 +116,6 @@ class Navigator
         if ( _currentAileron != _prevAileron )
         {
           _prevAileron = _currentAileron;
-          return true;
-
         }
         return true;
       }
@@ -148,28 +146,31 @@ class Navigator
 
       if ( _override_y != SERVO_STARTANGLE)
       {
+        _pyPID->SetMode(MANUAL);
         _currentElevator = _override_y;
         return true;
       }
-
-      if ( _imu->y == _target_y )
-        return false;
-
-      _pyPID->Compute();
-
-      if ( _prevElevator != _currentElevator )
+      else
       {
-        _prevElevator = _currentElevator;
-        return true;
+        _pyPID->SetMode(AUTOMATIC);
       }
 
+      if ( _pyPID->Compute() )
+      {
+
+        if ( _prevElevator != _currentElevator )
+        {
+          _prevElevator = _currentElevator;
+        }
+        return true;
+      }
 
       return false;
     }
 
     void UpdatePitch()
     {
-      int elevator = protectServo( _currentElevator - _currentCollective  );
+      int elevator = protectServo( _currentElevator + _currentCollective  );
 
       _elevatorServo.write(elevator);
     }
