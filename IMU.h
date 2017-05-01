@@ -1,5 +1,5 @@
-const int PIN_IMU_X = 20;
-const int PIN_IMU_Y = 19;
+const int PIN_IMU_X = 19;
+const int PIN_IMU_Y = 20;
 const int PIN_IMU_Z = 18;
 const int PIN_IMU_TEMP = 17;
 
