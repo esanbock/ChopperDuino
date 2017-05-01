@@ -522,6 +522,7 @@ void loop()
   {
     commandProcessor.DumpIMU(guide, nav._target_x, nav._target_y, nav._target_z);
   }
+  DumpVoltageIfChanged();
 
   Command& command = commandProcessor.GetCommand();
   nav.ProcessCommand(command);
