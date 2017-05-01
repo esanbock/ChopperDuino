@@ -37,7 +37,7 @@ class Navigator
     PWMServo _rightServo;
     PWMServo _elevatorServo;
 
-    int _currentPitch;
+    double _currentCollective;
 
     // servos
     double _currentAileron;
@@ -127,8 +127,8 @@ class Navigator
     void UpdateRoll()
     {
       int elevatorOffset = _currentElevator - SERVO_STARTANGLE;
-      int leftAileron = protectServo( _currentAileron - _currentPitch + elevatorOffset );
-      int rightAileron = protectServo( _currentAileron + _currentPitch - elevatorOffset );
+      int leftAileron = protectServo( _currentAileron + _currentCollective + elevatorOffset );
+      int rightAileron = protectServo( _currentAileron - _currentCollective - elevatorOffset );
 
       _leftServo.write( leftAileron );
       _rightServo.write( rightAileron );
@@ -169,7 +169,7 @@ class Navigator
 
     void UpdatePitch()
     {
-      int elevator = protectServo( _currentElevator - _currentPitch  );
+      int elevator = protectServo( _currentElevator - _currentCollective  );
 
       _elevatorServo.write(elevator);
     }
@@ -230,9 +230,9 @@ class Navigator
   public:
     Navigator( IMU* imu )
     {
+      _currentCollective = 0;
       _blinkerOn = false;
 
-      _currentPitch = 0;
       _currentAileron = SERVO_STARTANGLE;
       _currentElevator = SERVO_STARTANGLE;
 
@@ -345,7 +345,6 @@ class Navigator
     void Yaw( int val )
     {
       _override_z = val;
-      _override_z = ProtectTailRotor(_override_z);
     }
 
     // 0 - 255
@@ -360,7 +359,7 @@ class Navigator
 
     void AdjustCollective()
     {
-      _currentPitch =  _currentThrottle * 0.078431372549; //   ((SERVO_MAX - SERVO_STARTANGLE) / THROTTLE_MAX);
+      _currentCollective =  _currentThrottle * 0.078431372549; //   ((SERVO_MAX - SERVO_STARTANGLE) / THROTTLE_MAX);
     }
 
     bool IsLinkOk()
