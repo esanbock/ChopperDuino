@@ -37,7 +37,7 @@ class Navigator
     PWMServo _rightServo;
     PWMServo _elevatorServo;
 
-    double _currentCollective;
+    int _currentCollective;
 
     // servos
     double _currentAileron;
@@ -125,8 +125,8 @@ class Navigator
     void UpdateRoll()
     {
       int elevatorOffset = _currentElevator - SERVO_STARTANGLE;
-      int leftAileron = protectServo( _currentAileron + _currentCollective + elevatorOffset );
-      int rightAileron = protectServo( _currentAileron - _currentCollective - elevatorOffset );
+      int leftAileron = protectServo( _currentAileron - _currentCollective + elevatorOffset );
+      int rightAileron = protectServo( _currentAileron + _currentCollective - elevatorOffset );
 
       _leftServo.write( leftAileron );
       _rightServo.write( rightAileron );
@@ -187,21 +187,21 @@ class Navigator
 
       if ( _override_z != 0 )
       {
+        _pzPID->SetMode(MANUAL);
         _currentTailRotor = _override_z;
         return true;
       }
 
-      if ( _imu->z == _target_z )
-        return false;
-
-      _pzPID->Compute();
-      if ( _prevTail != _currentTailRotor )
+      _pzPID->SetMode(AUTOMATIC);
+      if( _pzPID->Compute() )
       {
-        _prevTail = _currentTailRotor;
-        return true;
+        if ( _prevTail != _currentTailRotor )
+        {
+          _prevTail = _currentTailRotor;
+          return true;
+        }
       }
-      else
-        return false;
+      return false;
     }
 
     void UpdateYaw()
@@ -242,11 +242,11 @@ class Navigator
 
       _imu = imu;
 
-      _pxPID = new PID(&_imu->x, &_currentAileron, &_target_x, 2, 5, 1, REVERSE);
+      _pxPID = new PID(&_imu->x, &_currentAileron, &_target_x, 1, 10,   1, REVERSE);
       _pxPID->SetOutputLimits(SERVO_MIN, SERVO_MAX);
-      _pyPID = new PID(&_imu->y, &_currentElevator, &_target_y, 2, 5, 1, REVERSE);
+      _pyPID = new PID(&_imu->y, &_currentElevator, &_target_y, 1, 10, 1, REVERSE);
       _pyPID->SetOutputLimits(SERVO_MIN, SERVO_MAX);
-      _pzPID = new PID(&_imu->z, &_currentTailRotor, &_target_z, 2, 5, 1, REVERSE);
+      _pzPID = new PID(&_imu->z, &_currentTailRotor, &_target_z, 1, 10, 1, REVERSE);
       _pzPID->SetOutputLimits(TAILROTOR_MIN, TAILROTOR_MAX);
     }
 
@@ -356,6 +356,7 @@ class Navigator
       AdjustCollective();
       UpdatePitch();
       UpdateRoll();
+      commandProcessor.DumpCollective(_currentCollective);
     }
 
     void AdjustCollective()
@@ -406,6 +407,7 @@ class Navigator
           commandProcessor.DumpIMU(*_imu, _target_x, _target_y, _target_z);
           commandProcessor.DumpThrottle(GetCurrentThrottle());
           commandProcessor.DumpTailRotor(_currentTailRotor, _target_z);
+          commandProcessor.DumpCollective(_currentCollective);
           break;
         case Command::Roll:
           Roll( command.Value );
@@ -415,7 +417,7 @@ class Navigator
           break;
         case Command::Throttle:
           // Safety check for low voltage
-          if ( GetCurrentThrottle() == 0 )
+          /*if ( GetCurrentThrottle() == 0 )
           {
             int currentVolts =  analogRead( PIN_VOLTAGE );
             if (  currentVolts < MIN_VOLTAGE )
@@ -423,11 +425,9 @@ class Navigator
               commandProcessor.Print("Low voltage! ");
               commandProcessor.PrintLine( currentVolts );
             }
-          }
-          else
-          {
-            SetThrottle( command.Value );
-          }
+            return;
+          }*/
+          SetThrottle( command.Value );
           break;
 
         case Command::Yaw:

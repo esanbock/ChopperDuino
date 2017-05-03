@@ -49,11 +49,19 @@ void CommandProcessor::DumpIMU( IMU& imu, double targetX, double targetY, double
   PrintLine(imu.temp);
 }
 
+void CommandProcessor::DumpCollective( double collective )
+{
+  Print (":C");
+  PrintLine( collective ); 
+}
+
 void CommandProcessor::DumpThrottle(int t)
 {
   Print( "Throttle=" );
   PrintLine( t );
 }
+
+
 
 
 void CommandProcessor::DumpTailRotor( int tail, int targetZ )

@@ -63,5 +63,6 @@ class CommandProcessor
     void DumpThrottle(int t);
     void DumpTailRotor( int tail, int targetZ );
     virtual Command& GetCommand();
+    void DumpCollective( double collective );
 };
 
