@@ -78,6 +78,18 @@ void CommandProcessor::DumpTailRotor( int tail, int targetZ )
   PrintLine(response);
 }
 
+void CommandProcessor::RespondToEcho( int e )
+{
+  String response = ":ER";
+  response += e;
+  PrintLine(response);
+}
+
+void CommandProcessor::NotifyEmergency()
+{
+  PrintLine("!!!");
+}
+
 Command& CommandProcessor::GetCommand()
 {
   while ( Available() )

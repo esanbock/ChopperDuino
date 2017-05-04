@@ -130,7 +130,7 @@ class Navigator
     {
       int elevatorOffset = _currentElevator - SERVO_STARTANGLE;
       int leftAileron = protectServo( _currentAileron - _currentCollective + elevatorOffset );
-      int rightAileron = protectServo( _currentAileron + _currentCollective - elevatorOffset );
+      int rightAileron = protectServo( _currentAileron - _currentCollective - elevatorOffset );
 
       _leftServo.write( leftAileron );
       _rightServo.write( rightAileron );
@@ -288,30 +288,9 @@ class Navigator
       return _currentThrottle;
     }
 
-    void Navigate()
-    {
-      if ( !IsLinkOk() )
-      {
-        EmergencyLanding();
-        return;
-      }
-
-      if ( AdjustRoll() )
-      {
-        UpdateRoll();
-      }
-      if ( AdjustPitch() )
-      {
-        UpdatePitch();
-        UpdateRoll();
-      }
-      if ( AdjustYaw() )
-        UpdateYaw();
-    }
-
     void EmergencyLanding()
     {
-      commandProcessor.PrintLine("Emergency Landing!!!");
+      commandProcessor.NotifyEmergency();
       while ( _currentThrottle > 0 )
       {
         SetThrottle( _currentThrottle - 1 );
@@ -460,18 +439,14 @@ class Navigator
 
         case Command::NavigationOnOff:
           NavigationOnOff( command.Value );
-          commandProcessor.Print("Navigation set to ");
-          commandProcessor.PrintLine( command.Value );
           break;
 
         case Command::SetHome:
           SetHome();
-          commandProcessor.PrintLine("New home set");
           break;
 
         case Command::Echo:
-          commandProcessor.Print(":ER");
-          commandProcessor.PrintLine(command.Value);
+          commandProcessor.RespondToEcho(command.Value);
           break;
 
         case Command::None:
@@ -485,6 +460,31 @@ class Navigator
       // a fun blinker
       BlinkOn();
     }
+
+    void Navigate()
+    {
+      if ( !IsLinkOk() )
+      {
+        EmergencyLanding();
+        return;
+      }
+
+      // the pitch impacts the roll
+      bool doRoll = AdjustRoll();
+      bool doPitch = AdjustPitch();
+      if ( doRoll || doPitch )
+      {
+        UpdateRoll();
+      }
+      if ( doPitch )
+      {
+        UpdatePitch();
+      }
+      if ( AdjustYaw() )
+        UpdateYaw();
+    }
+
+
 };
 
 IMU guide;

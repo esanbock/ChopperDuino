@@ -45,17 +45,17 @@ class CommandProcessor
     Command _command;
   protected:
     unsigned long _lastCommTime;
+    virtual void PrintLine( const char * szLine ) = 0;
+    virtual void Print( const char* szChars ) = 0;
+    virtual void Print( int num) = 0;
+    virtual void PrintLine( int num ) = 0;
+    virtual void PrintLine( String line )=0;
   public:
     CommandProcessor() ;
 
     virtual void Begin() = 0;
     virtual int GetChar() = 0;
     virtual int Available() = 0;
-    virtual void PrintLine( const char * szLine ) = 0;
-    virtual void Print( const char* szChars ) = 0;
-    virtual void Print( int num) = 0;
-    virtual void PrintLine( int num ) = 0;
-    virtual void PrintLine( String line )=0;
 
     unsigned long GetLastCommTime();
     int ReadNum();
@@ -66,5 +66,7 @@ class CommandProcessor
     virtual Command& GetCommand();
     void DumpCollective( int collective );
     void DumpVoltage( int voltage );
+    void RespondToEcho( int e );
+    void NotifyEmergency();
 };
 
