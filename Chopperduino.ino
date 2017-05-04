@@ -7,14 +7,16 @@
 #include "CommandProcessor.h"
 #include "UartCommandProcessor.h"
 
+// parameters
 static const int SERVO_MIN = 70;
 static const int SERVO_MAX = 110;
 static const int SERVO_STARTANGLE = 90;
 static const int TAILROTOR_MIN = 100;
 static const int TAILROTOR_MAX = 254;
 static const int THROTTLE_MAX = 255;
+static const int VOLTAGE_TRIP = 0;
 
-
+// pins
 const int PIN_THROTTLE = 10;
 const int PIN_TAIL = 12;
 const int PIN_SERVO_LEFT = SERVO_PIN_A; // pin 14, SERVO_2
@@ -248,8 +250,15 @@ class Navigator
       _pXController->SetOutputLimits(SERVO_MIN, SERVO_MAX);
       _pYController = new SimpleController(&_imu->y, &_currentElevator, &_target_y, 1, 10, 1, REVERSE);
       _pYController->SetOutputLimits(SERVO_MIN, SERVO_MAX);
-      _pZController = new PidController(&_imu->z, &_currentTailRotor, &_target_z, 1, 10, 1, REVERSE);
+      _pZController = new SimpleController(&_imu->z, &_currentTailRotor, &_target_z, 1, 10, 1, DIRECT);
       _pZController->SetOutputLimits(TAILROTOR_MIN, TAILROTOR_MAX);
+    }
+
+    virtual ~Navigator()
+    {
+      delete _pXController;
+      delete _pYController;
+      delete _pZController;
     }
 
     void Initialize()
@@ -374,13 +383,31 @@ class Navigator
       return true;
     }
 
-    void DumpVoltage()
+
+    int _currentVoltage;
+
+    void UpdateVoltage()
     {
-      commandProcessor.Print( "V=" );
-      commandProcessor.PrintLine( analogRead( PIN_VOLTAGE ) );
+      _currentVoltage = analogRead( PIN_VOLTAGE );
     }
-
-
+    
+    void DumpVoltageIfChanged()
+    {
+      static int lastMillis=0;
+      int m = millis();
+      if( m - lastMillis < 1000 )
+      {
+        return;
+      }
+      lastMillis = m;
+      
+      int voltNow = analogRead( PIN_VOLTAGE );
+      if ( abs(voltNow - _currentVoltage) > VOLTAGE_TRIP && voltNow > 0 )
+      {
+        _currentVoltage = voltNow;
+        commandProcessor.DumpVoltage(  voltNow );
+      }
+    }
     void BlinkOff()
     {
       if ( _blinkerOn == false )
@@ -427,7 +454,8 @@ class Navigator
           break;
 
         case Command::Voltage:
-          DumpVoltage();
+          UpdateVoltage();
+          commandProcessor.DumpVoltage(_currentVoltage);
           break;
 
         case Command::NavigationOnOff:
@@ -493,19 +521,6 @@ void setup()
 }
 
 
-int prevVoltage;
-void DumpVoltageIfChanged()
-{
-  int voltNow = analogRead( PIN_VOLTAGE );
-  if ( abs(voltNow - prevVoltage) > 50 )
-  {
-    prevVoltage = voltNow;
-    commandProcessor.Print( "V=" );
-    commandProcessor.PrintLine(  voltNow );
-  }
-}
-
-
 void loop()
 {
   guide.ReadValues();
@@ -515,7 +530,7 @@ void loop()
   {
     commandProcessor.DumpIMU(guide, nav._target_x, nav._target_y, nav._target_z);
   }
-  DumpVoltageIfChanged();
+  nav.DumpVoltageIfChanged();
 
   Command& command = commandProcessor.GetCommand();
   nav.ProcessCommand(command);
