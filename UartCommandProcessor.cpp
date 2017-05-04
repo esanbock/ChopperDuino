@@ -27,6 +27,13 @@ void UartCommandProcessor::PrintLine( const char * szLine )
 {
   _uart.println( szLine );
 }
+
+void UartCommandProcessor::PrintLine( String line )
+{
+  _uart.println( line );
+}
+
+
 void UartCommandProcessor::PrintLine( int num )
 {
   _uart.println( num );

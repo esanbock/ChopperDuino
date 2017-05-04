@@ -8,6 +8,7 @@ class UartCommandProcessor : public CommandProcessor
     int GetChar();
     int Available();
     void PrintLine( const char * szLine );
+    void PrintLine( String line );
     void PrintLine( int num );
     void Print( const char* szChars );
     void Print( int num );

@@ -38,36 +38,44 @@ int CommandProcessor::GetCharBlocking()
 
 void CommandProcessor::DumpIMU( IMU& imu, double targetX, double targetY, double targetZ )
 {
-  Print(":S ");
-  Print("x:");
-  Print(imu.x);
-  Print(" y:");
-  Print(imu.y);
-  Print(" z:");
-  Print(imu.z);
-  Print(" t:");
-  PrintLine(imu.temp);
+  String response = ":S x:";
+  response += (int)imu.x;
+  response += " y:";
+  response += (int)imu.y;
+  response += " z:" ;
+  response += (int)imu.z;
+  response += " t:";
+  response += (int)imu.temp;
+  PrintLine(response);
 }
 
-void CommandProcessor::DumpCollective( double collective )
+void CommandProcessor::DumpCollective( int collective )
 {
-  Print (":C");
-  PrintLine( collective ); 
+  String response = ":C";
+  response += collective;
+  PrintLine( response ); 
 }
 
 void CommandProcessor::DumpThrottle(int t)
 {
-  Print( "Throttle=" );
-  PrintLine( t );
+  String response = ( "Throttle=" );
+  response += t;
+  PrintLine( response );
 }
 
 
-
+void CommandProcessor::DumpVoltage(int v)
+{
+  String response = "V=";
+  response += v;
+  PrintLine( response );
+}
 
 void CommandProcessor::DumpTailRotor( int tail, int targetZ )
 {
-  Print("_currentTailRotor=");
-  PrintLine(tail);
+  String response = "_currentTailRotor=";
+  response += tail;
+  PrintLine(response);
 }
 
 Command& CommandProcessor::GetCommand()

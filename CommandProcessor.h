@@ -55,6 +55,7 @@ class CommandProcessor
     virtual void Print( const char* szChars ) = 0;
     virtual void Print( int num) = 0;
     virtual void PrintLine( int num ) = 0;
+    virtual void PrintLine( String line )=0;
 
     unsigned long GetLastCommTime();
     int ReadNum();
@@ -63,6 +64,7 @@ class CommandProcessor
     void DumpThrottle(int t);
     void DumpTailRotor( int tail, int targetZ );
     virtual Command& GetCommand();
-    void DumpCollective( double collective );
+    void DumpCollective( int collective );
+    void DumpVoltage( int voltage );
 };
 
