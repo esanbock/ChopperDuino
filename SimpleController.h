@@ -13,6 +13,7 @@ private:
 public:
 // _pxPID = new PID(&_imu->x, &_currentAileron, &_target_x, 1, 10,   1, REVERSE);
   SimpleController(double* pInput, double *pOutput, double* setPoint, double p, double i, double d, int dir);
+  virtual ~SimpleController();
   virtual bool Compute();
   virtual void SetOutputLimits( double low, double high );
   virtual void SetMode( int mode );

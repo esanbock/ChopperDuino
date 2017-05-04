@@ -18,6 +18,11 @@ SimpleController::SimpleController(double* pInput, double *pOutput, double* setP
   _setPoint = setPoint;
 }
 
+SimpleController::~SimpleController()
+{
+  
+}
+
 bool SimpleController::Compute()
 {
   if( _mode == MANUAL )

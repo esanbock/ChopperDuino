@@ -7,6 +7,11 @@ public:
       
     }
 
+  virtual ~PidController()
+  {
+    
+  }
+
   virtual bool Compute()
   {
     return PID::Compute();
