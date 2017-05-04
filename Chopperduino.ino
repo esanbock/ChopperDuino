@@ -1,6 +1,8 @@
 #include <PWMServo.h>
 #include <PID_v1.h>
-
+#include "ProcessController.h"
+#include "SimpleController.h"
+#include "PidController.h"
 #include "IMU.h"
 #include "CommandProcessor.h"
 #include "UartCommandProcessor.h"
@@ -54,9 +56,9 @@ class Navigator
     int _override_z;
 
     //pid
-    PID* _pxPID;
-    PID* _pyPID;
-    PID* _pzPID;
+    ProcessController* _pxPID;
+    ProcessController* _pyPID;
+    ProcessController* _pzPID;
 
     // blinker
     boolean _blinkerOn;
@@ -242,11 +244,11 @@ class Navigator
 
       _imu = imu;
 
-      _pxPID = new PID(&_imu->x, &_currentAileron, &_target_x, 1, 10,   1, REVERSE);
+      _pxPID = new SimpleController(&_imu->x, &_currentAileron, &_target_x, 1, 10,   1, REVERSE);
       _pxPID->SetOutputLimits(SERVO_MIN, SERVO_MAX);
-      _pyPID = new PID(&_imu->y, &_currentElevator, &_target_y, 1, 10, 1, REVERSE);
+      _pyPID = new SimpleController(&_imu->y, &_currentElevator, &_target_y, 1, 10, 1, REVERSE);
       _pyPID->SetOutputLimits(SERVO_MIN, SERVO_MAX);
-      _pzPID = new PID(&_imu->z, &_currentTailRotor, &_target_z, 1, 10, 1, REVERSE);
+      _pzPID = new PidController(&_imu->z, &_currentTailRotor, &_target_z, 1, 10, 1, REVERSE);
       _pzPID->SetOutputLimits(TAILROTOR_MIN, TAILROTOR_MAX);
     }
 
@@ -417,16 +419,6 @@ class Navigator
           break;
         case Command::Throttle:
           // Safety check for low voltage
-          /*if ( GetCurrentThrottle() == 0 )
-          {
-            int currentVolts =  analogRead( PIN_VOLTAGE );
-            if (  currentVolts < MIN_VOLTAGE )
-            {
-              commandProcessor.Print("Low voltage! ");
-              commandProcessor.PrintLine( currentVolts );
-            }
-            return;
-          }*/
           SetThrottle( command.Value );
           break;
 
