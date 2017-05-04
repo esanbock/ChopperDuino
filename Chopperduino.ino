@@ -56,9 +56,9 @@ class Navigator
     int _override_z;
 
     //pid
-    ProcessController* _pxPID;
-    ProcessController* _pyPID;
-    ProcessController* _pzPID;
+    ProcessController* _pXController;
+    ProcessController* _pYController;
+    ProcessController* _pZController;
 
     // blinker
     boolean _blinkerOn;
@@ -101,18 +101,18 @@ class Navigator
       // manual override while navigating
       if ( _override_x != SERVO_STARTANGLE )
       {
-        _pxPID->SetMode(MANUAL);
+        _pXController->SetMode(MANUAL);
         _currentAileron = _override_x;
         return true;
       }
       else
       {
         // it's ok to do this repeatedly
-        _pxPID->SetMode(AUTOMATIC);
+        _pXController->SetMode(AUTOMATIC);
       }
 
       // use the PID
-      if ( _pxPID->Compute() )
+      if ( _pXController->Compute() )
       {
 
         if ( _currentAileron != _prevAileron )
@@ -148,16 +148,16 @@ class Navigator
 
       if ( _override_y != SERVO_STARTANGLE)
       {
-        _pyPID->SetMode(MANUAL);
+        _pYController->SetMode(MANUAL);
         _currentElevator = _override_y;
         return true;
       }
       else
       {
-        _pyPID->SetMode(AUTOMATIC);
+        _pYController->SetMode(AUTOMATIC);
       }
 
-      if ( _pyPID->Compute() )
+      if ( _pYController->Compute() )
       {
 
         if ( _prevElevator != _currentElevator )
@@ -189,13 +189,13 @@ class Navigator
 
       if ( _override_z != 0 )
       {
-        _pzPID->SetMode(MANUAL);
+        _pZController->SetMode(MANUAL);
         _currentTailRotor = _override_z;
         return true;
       }
 
-      _pzPID->SetMode(AUTOMATIC);
-      if( _pzPID->Compute() )
+      _pZController->SetMode(AUTOMATIC);
+      if( _pZController->Compute() )
       {
         if ( _prevTail != _currentTailRotor )
         {
@@ -244,12 +244,12 @@ class Navigator
 
       _imu = imu;
 
-      _pxPID = new SimpleController(&_imu->x, &_currentAileron, &_target_x, 1, 10,   1, REVERSE);
-      _pxPID->SetOutputLimits(SERVO_MIN, SERVO_MAX);
-      _pyPID = new SimpleController(&_imu->y, &_currentElevator, &_target_y, 1, 10, 1, REVERSE);
-      _pyPID->SetOutputLimits(SERVO_MIN, SERVO_MAX);
-      _pzPID = new PidController(&_imu->z, &_currentTailRotor, &_target_z, 1, 10, 1, REVERSE);
-      _pzPID->SetOutputLimits(TAILROTOR_MIN, TAILROTOR_MAX);
+      _pXController = new SimpleController(&_imu->x, &_currentAileron, &_target_x, 1, 10,   1, REVERSE);
+      _pXController->SetOutputLimits(SERVO_MIN, SERVO_MAX);
+      _pYController = new SimpleController(&_imu->y, &_currentElevator, &_target_y, 1, 10, 1, REVERSE);
+      _pYController->SetOutputLimits(SERVO_MIN, SERVO_MAX);
+      _pZController = new PidController(&_imu->z, &_currentTailRotor, &_target_z, 1, 10, 1, REVERSE);
+      _pZController->SetOutputLimits(TAILROTOR_MIN, TAILROTOR_MAX);
     }
 
     void Initialize()
@@ -317,16 +317,16 @@ class Navigator
       if ( value == 0 )
       {
         NavigationEnabled = false;
-        _pxPID->SetMode(MANUAL);
-        _pyPID->SetMode(MANUAL);
-        _pzPID->SetMode(MANUAL);
+        _pXController->SetMode(MANUAL);
+        _pYController->SetMode(MANUAL);
+        _pZController->SetMode(MANUAL);
       }
       if ( value == 1 )
       {
         NavigationEnabled = true;
-        _pxPID->SetMode(AUTOMATIC);
-        _pyPID->SetMode(AUTOMATIC);
-        _pzPID->SetMode(AUTOMATIC);
+        _pXController->SetMode(AUTOMATIC);
+        _pYController->SetMode(AUTOMATIC);
+        _pZController->SetMode(AUTOMATIC);
       }
 
     }
