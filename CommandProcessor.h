@@ -68,5 +68,6 @@ class CommandProcessor
     void DumpVoltage( int voltage );
     void RespondToEcho( int e );
     void NotifyEmergency();
+    void NewHome( double targetX, double targetY, double targetZ );
 };
 

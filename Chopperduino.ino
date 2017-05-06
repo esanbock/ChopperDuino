@@ -79,6 +79,8 @@ class Navigator
       _target_x = _imu->x;
       _target_y = _imu->y;
       _target_z = _imu->z;
+
+      commandProcessor.NewHome(_target_x, _target_y, _target_z);
     }
   protected:
     int protectServo( int val )

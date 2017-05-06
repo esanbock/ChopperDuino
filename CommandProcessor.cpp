@@ -49,6 +49,16 @@ void CommandProcessor::DumpIMU( IMU& imu, double targetX, double targetY, double
   PrintLine(response);
 }
 
+void CommandProcessor::NewHome( double targetX, double targetY, double targetZ )
+{
+  String response = ":NH x:";
+  response += (int)targetX;
+  response += " y:";
+  response += (int)targetY;
+  response += " z:" ;
+  response += (int)targetZ;
+  PrintLine(response);
+}
 void CommandProcessor::DumpCollective( int collective )
 {
   String response = ":C";
