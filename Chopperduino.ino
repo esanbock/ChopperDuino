@@ -132,7 +132,7 @@ class Navigator
     {
       int elevatorOffset = _currentElevator - SERVO_STARTANGLE;
       int leftAileron = protectServo( _currentAileron - _currentCollective + elevatorOffset );
-      int rightAileron = protectServo( _currentAileron - _currentCollective - elevatorOffset );
+      int rightAileron = protectServo( _currentAileron + _currentCollective - elevatorOffset );
 
       _leftServo.write( leftAileron );
       _rightServo.write( rightAileron );
