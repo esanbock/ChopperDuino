@@ -33,6 +33,15 @@ void UartCommandProcessor::PrintLine( String line )
   _uart.println( line );
 }
 
+void UartCommandProcessor::PrintLine( String line, bool optional )
+{
+  if( optional )
+  {
+    if( _uart.availableForWrite() < (int) line.length() )
+      return;
+  }
+  _uart.println( line );
+}
 
 void UartCommandProcessor::PrintLine( int num )
 {
