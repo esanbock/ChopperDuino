@@ -79,6 +79,8 @@ class Navigator
       _target_x = _imu->x;
       _target_y = _imu->y;
       _target_z = _imu->z;
+
+      commandProcessor.NewHome(_target_x, _target_y, _target_z);
     }
   protected:
     int protectServo( int val )
@@ -130,7 +132,7 @@ class Navigator
     {
       int elevatorOffset = _currentElevator - SERVO_STARTANGLE;
       int leftAileron = protectServo( _currentAileron - _currentCollective + elevatorOffset );
-      int rightAileron = protectServo( _currentAileron - _currentCollective - elevatorOffset );
+      int rightAileron = protectServo( _currentAileron + _currentCollective - elevatorOffset );
 
       _leftServo.write( leftAileron );
       _rightServo.write( rightAileron );

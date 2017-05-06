@@ -70,5 +70,6 @@ class CommandProcessor
     void RespondToEcho( int e );
     void NotifyEmergency();
     void DumpMotors( int currentAileron, int currentElevator, int currentTailRotor );
+    void NewHome( double targetX, double targetY, double targetZ );
 };
 
