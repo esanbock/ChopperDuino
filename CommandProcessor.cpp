@@ -46,7 +46,18 @@ void CommandProcessor::DumpIMU( IMU& imu, double targetX, double targetY, double
   response += (int)imu.z;
   response += " t:";
   response += (int)imu.temp;
-  PrintLine(response);
+  PrintLine(response, true);
+}
+
+void CommandProcessor::DumpMotors( int currentAileron, int currentElevator, int currentTailRotor )
+{
+  String response = ":M x:";
+  response += currentAileron;
+  response += " y:";
+  response += currentElevator;
+  response += " z:" ;
+  response += currentTailRotor;
+  PrintLine(response, true);
 }
 
 void CommandProcessor::DumpCollective( int collective )

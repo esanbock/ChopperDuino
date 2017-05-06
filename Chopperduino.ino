@@ -482,6 +482,11 @@ class Navigator
       }
       if ( AdjustYaw() )
         UpdateYaw();
+
+      if( doRoll || doPitch )
+      {
+        commandProcessor.DumpMotors(_currentAileron, _currentElevator, _currentTailRotor );
+      }
     }
 
 

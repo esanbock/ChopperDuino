@@ -50,6 +50,7 @@ class CommandProcessor
     virtual void Print( int num) = 0;
     virtual void PrintLine( int num ) = 0;
     virtual void PrintLine( String line )=0;
+    virtual void PrintLine( String line, bool optional )=0;
   public:
     CommandProcessor() ;
 
@@ -68,5 +69,6 @@ class CommandProcessor
     void DumpVoltage( int voltage );
     void RespondToEcho( int e );
     void NotifyEmergency();
+    void DumpMotors( int currentAileron, int currentElevator, int currentTailRotor );
 };
 
