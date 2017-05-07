@@ -4,6 +4,7 @@
 #include "SimpleController.h"
 #include "PidController.h"
 #include "IMU.h"
+#include "AvgIMU.h"
 #include "CommandProcessor.h"
 #include "UartCommandProcessor.h"
 
