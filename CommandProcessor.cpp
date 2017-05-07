@@ -108,7 +108,7 @@ void CommandProcessor::RespondToEcho( int e )
 
 void CommandProcessor::NotifyEmergency()
 {
-  PrintLine("!!!");
+  PrintLine("!!!",true);
 }
 
 Command& CommandProcessor::GetCommand()
