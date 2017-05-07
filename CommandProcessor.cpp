@@ -103,7 +103,7 @@ void CommandProcessor::RespondToEcho( int e )
 {
   String response = ":ER";
   response += e;
-  PrintLine(response);
+  PrintLine(response,true);
 }
 
 void CommandProcessor::NotifyEmergency()
