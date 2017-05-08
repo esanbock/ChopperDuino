@@ -38,35 +38,35 @@ int CommandProcessor::GetCharBlocking()
 
 void CommandProcessor::DumpIMU( IMU& imu, double targetX, double targetY, double targetZ )
 {
-  String response = ":S x:";
+  String response = ":S ";
   response += (int)imu.x;
-  response += " y:";
+  response += ",";
   response += (int)imu.y;
-  response += " z:" ;
+  response += "," ;
   response += (int)imu.z;
-  response += " t:";
+  response += ",";
   response += (int)imu.temp;
   PrintLine(response, true);
 }
 
 void CommandProcessor::DumpMotors( int currentAileron, int currentElevator, int currentTailRotor )
 {
-  String response = ":M x:";
+  String response = ":M ";
   response += currentAileron;
-  response += " y:";
+  response += ",";
   response += currentElevator;
-  response += " z:" ;
+  response += "," ;
   response += currentTailRotor;
   PrintLine(response, true);
 }
 
 void CommandProcessor::NewHome( double targetX, double targetY, double targetZ )
 {
-  String response = ":NH x:";
+  String response = ":NH ";
   response += (int)targetX;
-  response += " y:";
+  response += ",";
   response += (int)targetY;
-  response += " z:" ;
+  response += "," ;
   response += (int)targetZ;
   PrintLine(response);
 }
