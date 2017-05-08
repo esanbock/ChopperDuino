@@ -11,4 +11,8 @@ class SerialCommandProcessor : public CommandProcessor
     void Print( const char* szChars );
     void Print( double num );
     void Print( int num );
+    Stream& GetStream()
+    {
+      return Serial;
+    }
 };

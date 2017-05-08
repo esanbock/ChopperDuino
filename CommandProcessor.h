@@ -2,6 +2,9 @@ class Command
 {
 public:
   int Value;
+  float kP;
+  float kI;
+  float kD;
 public:
   Command()
   {
@@ -19,7 +22,8 @@ public:
     Pitch,
     NavigationOnOff,
     SetHome,
-    Echo
+    Echo,
+    SetPid
   };
   enum CommandValueType
   {
@@ -51,6 +55,9 @@ class CommandProcessor
     virtual void PrintLine( int num ) = 0;
     virtual void PrintLine( String line )=0;
     virtual void PrintLine( String line, bool optional )=0;
+    virtual Stream& GetStream()=0;
+    Command& ParsePidTuneCommand();
+    
   public:
     CommandProcessor() ;
 

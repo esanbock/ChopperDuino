@@ -164,6 +164,8 @@ Command& CommandProcessor::GetCommand()
           _command.Value = ReadNum();
           _command.ChangeType = Command::Absolute;
           return _command;
+        case 'Q':
+          return ParsePidTuneCommand();
         default:
           PrintLine("NAK:");
           break;
@@ -172,6 +174,23 @@ Command& CommandProcessor::GetCommand()
 
   }
   _command.CommandType = Command::None;
+  return _command;
+}
+
+Command& CommandProcessor::ParsePidTuneCommand()
+{
+  _command.CommandType = Command::None;
+  _command.kP = GetStream().parseFloat();
+  char c = GetCharBlocking();
+  if( c != ',' )
+    return _command;
+  _command.kI = GetStream().parseFloat();
+  c = GetCharBlocking();
+  if( c != ',' )
+    return _command;
+  _command.kD = GetStream().parseFloat();
+
+  _command.CommandType = Command::SetPid;
   return _command;
 }
 

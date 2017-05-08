@@ -13,5 +13,9 @@ class UartCommandProcessor : public CommandProcessor
     void PrintLine( int num );
     void Print( const char* szChars );
     void Print( int num );
+    Stream& GetStream()
+    {
+      return _uart;
+    }
 };
 
