@@ -59,9 +59,7 @@ class Navigator
     int _override_z;
 
     //pid
-    ProcessController* _pXController;
-    ProcessController* _pYController;
-    ProcessController* _pZController;
+    ProcessController* _pPidController[3];
 
     // blinker
     boolean _blinkerOn;
@@ -106,18 +104,18 @@ class Navigator
       // manual override while navigating
       if ( _override_x != SERVO_STARTANGLE )
       {
-        _pXController->SetMode(MANUAL);
+        _pPidController[0]->SetMode(MANUAL);
         _currentAileron = _override_x;
         return true;
       }
       else
       {
         // it's ok to do this repeatedly
-        _pXController->SetMode(AUTOMATIC);
+        _pPidController[0]->SetMode(AUTOMATIC);
       }
 
       // use the PID
-      if ( _pXController->Compute() )
+      if ( _pPidController[0]->Compute() )
       {
 
         if ( _currentAileron != _prevAileron )
@@ -153,16 +151,16 @@ class Navigator
 
       if ( _override_y != SERVO_STARTANGLE)
       {
-        _pYController->SetMode(MANUAL);
+        _pPidController[1]->SetMode(MANUAL);
         _currentElevator = _override_y;
         return true;
       }
       else
       {
-        _pYController->SetMode(AUTOMATIC);
+        _pPidController[1]->SetMode(AUTOMATIC);
       }
 
-      if ( _pYController->Compute() )
+      if ( _pPidController[1]->Compute() )
       {
 
         if ( _prevElevator != _currentElevator )
@@ -194,13 +192,13 @@ class Navigator
 
       if ( _override_z != 0 )
       {
-        _pZController->SetMode(MANUAL);
+        _pPidController[2]->SetMode(MANUAL);
         _currentTailRotor = _override_z;
         return true;
       }
 
-      _pZController->SetMode(AUTOMATIC);
-      if( _pZController->Compute() )
+      _pPidController[2]->SetMode(AUTOMATIC);
+      if( _pPidController[2]->Compute() )
       {
         if ( _prevTail != _currentTailRotor )
         {
@@ -249,19 +247,19 @@ class Navigator
 
       _imu = imu;
 
-      _pXController = new SimpleController(&_imu->x, &_currentAileron, &_target_x, 1, 10,   1, REVERSE);
-      _pXController->SetOutputLimits(SERVO_MIN, SERVO_MAX);
-      _pYController = new SimpleController(&_imu->y, &_currentElevator, &_target_y, 1, 10, 1, REVERSE);
-      _pYController->SetOutputLimits(SERVO_MIN, SERVO_MAX);
-      _pZController = new SimpleController(&_imu->z, &_currentTailRotor, &_target_z, 1, 10, 1, DIRECT);
-      _pZController->SetOutputLimits(TAILROTOR_MIN, TAILROTOR_MAX);
+      _pPidController[0] = new SimpleController(&_imu->x, &_currentAileron, &_target_x, 1, 10,   1, REVERSE);
+      _pPidController[0]->SetOutputLimits(SERVO_MIN, SERVO_MAX);
+      _pPidController[1] = new SimpleController(&_imu->y, &_currentElevator, &_target_y, 1, 10, 1, REVERSE);
+      _pPidController[1]->SetOutputLimits(SERVO_MIN, SERVO_MAX);
+      _pPidController[2] = new SimpleController(&_imu->z, &_currentTailRotor, &_target_z, 1, 10, 1, DIRECT);
+      _pPidController[2]->SetOutputLimits(TAILROTOR_MIN, TAILROTOR_MAX);
     }
 
     virtual ~Navigator()
     {
-      delete _pXController;
-      delete _pYController;
-      delete _pZController;
+      delete _pPidController[0];
+      delete _pPidController[1];
+      delete _pPidController[2];
     }
 
     void Initialize()
@@ -308,16 +306,16 @@ class Navigator
       if ( value == 0 )
       {
         NavigationEnabled = false;
-        _pXController->SetMode(MANUAL);
-        _pYController->SetMode(MANUAL);
-        _pZController->SetMode(MANUAL);
+        _pPidController[0]->SetMode(MANUAL);
+        _pPidController[1]->SetMode(MANUAL);
+        _pPidController[2]->SetMode(MANUAL);
       }
       if ( value == 1 )
       {
         NavigationEnabled = true;
-        _pXController->SetMode(AUTOMATIC);
-        _pYController->SetMode(AUTOMATIC);
-        _pZController->SetMode(AUTOMATIC);
+        _pPidController[0]->SetMode(AUTOMATIC);
+        _pPidController[1]->SetMode(AUTOMATIC);
+        _pPidController[2]->SetMode(AUTOMATIC);
       }
 
     }
@@ -450,6 +448,10 @@ class Navigator
 
         case Command::Echo:
           commandProcessor.RespondToEcho(command.Value);
+          break;
+
+        case Command::SetPid:
+          _pPidController[command.Value]->SetTunings(command.kP,command.kI,command.kD);
           break;
 
         case Command::None:

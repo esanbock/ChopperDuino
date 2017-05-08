@@ -53,3 +53,10 @@ void SimpleController::SetMode( int mode )
   _mode = mode;
 }
 
+void SimpleController::SetTunings( double kP, double kI, double kD )
+{
+  _p = kP;
+}
+
+
+

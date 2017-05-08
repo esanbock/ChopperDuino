@@ -180,18 +180,27 @@ Command& CommandProcessor::GetCommand()
 Command& CommandProcessor::ParsePidTuneCommand()
 {
   _command.CommandType = Command::None;
-  _command.kP = GetStream().parseFloat();
-  char c = GetCharBlocking();
-  if( c != ',' )
-    return _command;
-  _command.kI = GetStream().parseFloat();
-  c = GetCharBlocking();
-  if( c != ',' )
-    return _command;
-  _command.kD = GetStream().parseFloat();
 
-  _command.CommandType = Command::SetPid;
-  return _command;
+  _command.Value = GetStream().parseInt();
+    char c = GetCharBlocking();
+  if( c == ',' )
+  {
+    _command.kP = GetStream().parseFloat();
+    char c = GetCharBlocking();
+    if( c != ',' )
+    {
+      _command.kI = GetStream().parseFloat();
+      c = GetCharBlocking();
+      if( c == ',' )
+      {
+        _command.kD = GetStream().parseFloat();
+        _command.CommandType = Command::SetPid;
+        return _command;
+      }
+    }
+  }
+  PrintLine("NAK:");
+  return _command;        
 }
 
 

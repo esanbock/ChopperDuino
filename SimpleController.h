@@ -17,5 +17,6 @@ public:
   virtual bool Compute();
   virtual void SetOutputLimits( double low, double high );
   virtual void SetMode( int mode );
+  virtual void SetTunings( double kP, double kI, double kD );
 };
 
