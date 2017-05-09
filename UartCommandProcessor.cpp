@@ -26,11 +26,13 @@ int UartCommandProcessor::Available()
 void UartCommandProcessor::PrintLine( const char * szLine )
 {
   _uart.println( szLine );
+  _uart.flush();
 }
 
 void UartCommandProcessor::PrintLine( String line )
 {
   _uart.println( line );
+  _uart.flush();
 }
 
 void UartCommandProcessor::PrintLine( String line, bool optional )
@@ -41,11 +43,13 @@ void UartCommandProcessor::PrintLine( String line, bool optional )
       return;
   }
   _uart.println( line );
+  _uart.flush();
 }
 
 void UartCommandProcessor::PrintLine( int num )
 {
   _uart.println( num );
+  _uart.flush();
 }
 void UartCommandProcessor::Print( const char* szChars )
 {
