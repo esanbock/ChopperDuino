@@ -129,9 +129,9 @@ class Navigator
 
     void UpdateRoll()
     {
-      int elevatorOffset = _currentElevator - SERVO_STARTANGLE;
-      int leftAileron = protectServo( _currentAileron - _currentCollective + elevatorOffset );
-      int rightAileron = protectServo( _currentAileron + _currentCollective - elevatorOffset );
+      //int elevatorOffset = _currentElevator - SERVO_STARTANGLE;
+      int leftAileron = protectServo( _currentAileron - _currentCollective );
+      int rightAileron = protectServo( _currentAileron + _currentCollective );
 
       _leftServo.write( leftAileron );
       _rightServo.write( rightAileron );
@@ -477,7 +477,7 @@ class Navigator
       // the pitch impacts the roll
       bool doRoll = AdjustRoll();
       bool doPitch = AdjustPitch();
-      if ( doRoll || doPitch )
+      if ( doRoll )
       {
         UpdateRoll();
       }
