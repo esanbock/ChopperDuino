@@ -32,7 +32,7 @@ bool SimpleController::Compute()
     return false;
 
   double diff = *_setPoint - *_pInput;
-  *_pOutput = _outputLow + ((_outputHigh -_outputLow) / 2) - (diff * _p * (double)_direction);
+  *_pOutput = _outputLow + (_outputHigh -_outputLow) / 2 - (diff * _p * (double)_direction);
 
   // range checks
   *_pOutput = min( *_pOutput, _outputHigh );

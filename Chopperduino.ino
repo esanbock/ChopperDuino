@@ -66,9 +66,9 @@ class Navigator
 
   public:
     double _currentTailRotor;
-    double _target_x;
-    double _target_y;
-    double _target_z;
+    double _target_x = 500;
+    double _target_y = 500;
+    double _target_z = 500;
 
   public:
     boolean NavigationEnabled;
@@ -247,9 +247,9 @@ class Navigator
 
       _imu = imu;
 
-      _pPidController[0] = new SimpleController(&_imu->x, &_currentAileron, &_target_x, 1, 10,   1, REVERSE);
+      _pPidController[0] = new SimpleController(&_imu->x, &_currentAileron, &_target_x, 1, 10,   1, DIRECT);
       _pPidController[0]->SetOutputLimits(SERVO_MIN, SERVO_MAX);
-      _pPidController[1] = new SimpleController(&_imu->y, &_currentElevator, &_target_y, 1, 10, 1, REVERSE);
+      _pPidController[1] = new SimpleController(&_imu->y, &_currentElevator, &_target_y, 1, 10, 1, DIRECT);
       _pPidController[1]->SetOutputLimits(SERVO_MIN, SERVO_MAX);
       _pPidController[2] = new SimpleController(&_imu->z, &_currentTailRotor, &_target_z, 1, 10, 1, DIRECT);
       _pPidController[2]->SetOutputLimits(TAILROTOR_MIN, TAILROTOR_MAX);
@@ -452,6 +452,7 @@ class Navigator
 
         case Command::SetPid:
           _pPidController[command.Value]->SetTunings(command.kP,command.kI,command.kD);
+          commandProcessor.DumpPidValues(command.Value, command.kP, command.kI, command.kD);
           break;
 
         case Command::None:
@@ -497,7 +498,7 @@ class Navigator
 
 };
 
-IMU guide;
+AvgIMU guide;
 
 Navigator nav( &guide);
 
@@ -506,11 +507,6 @@ void setup()
   // initialize the digital pin as an output.
   // Teensy onboard LED
   pinMode(PIN_LED, OUTPUT);
-  // IMU pins
-  pinMode(PIN_IMU_X, INPUT);
-  pinMode(PIN_IMU_Y, INPUT);
-  pinMode(PIN_IMU_Z, INPUT);
-  pinMode(PIN_IMU_TEMP, INPUT);
   // voltage
   pinMode(PIN_VOLTAGE, INPUT);
 
@@ -523,7 +519,7 @@ void setup()
   commandProcessor.Begin();
 
   // IMU
-  nav.SetHome();
+  //nav.SetHome();
 
   // NAV
   nav.Initialize();
@@ -533,6 +529,9 @@ void setup()
 
 void loop()
 {
+  Command& command = commandProcessor.GetCommand();
+  nav.ProcessCommand(command);
+  
   guide.ReadValues();
   nav.Navigate();
 
@@ -540,10 +539,9 @@ void loop()
   {
     commandProcessor.DumpIMU(guide, nav._target_x, nav._target_y, nav._target_z);
   }
+  
   nav.DumpVoltageIfChanged();
 
-  Command& command = commandProcessor.GetCommand();
-  nav.ProcessCommand(command);
 
 }
 

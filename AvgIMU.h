@@ -9,7 +9,7 @@ class AvgIMU : public IMU
     virtual ~AvgIMU();
 
   private:
-    static const int AVGSIZE = 40;
+    static const int AVGSIZE = 20;
 
     int _realX;
     int _realY;

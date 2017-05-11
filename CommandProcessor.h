@@ -78,5 +78,6 @@ class CommandProcessor
     void NotifyEmergency();
     void DumpMotors( int currentAileron, int currentElevator, int currentTailRotor );
     void NewHome( double targetX, double targetY, double targetZ );
+    void DumpPidValues( int pidNum, double kP, double kI, double kD );
 };
 

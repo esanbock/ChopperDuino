@@ -60,6 +60,19 @@ void CommandProcessor::DumpMotors( int currentAileron, int currentElevator, int 
   PrintLine(response, true);
 }
 
+void CommandProcessor::DumpPidValues( int pidNum, double kP, double kI, double kD )
+{
+  String response = "New PID values for pid ";
+  response += pidNum;
+  response += ": ";
+  response += kP;
+  response += ",";
+  response += kI;
+  response += ",";
+  response += kD;
+  PrintLine(response);
+}
+
 void CommandProcessor::NewHome( double targetX, double targetY, double targetZ )
 {
   String response = ":NH ";
@@ -199,7 +212,7 @@ Command& CommandProcessor::ParsePidTuneCommand()
       }
     }
   }
-  PrintLine("NAK:");
+  PrintLine("NAK: ParsePidTuneCommand");
   return _command;        
 }
 

@@ -3,6 +3,12 @@
 
 IMU::IMU( )
 {
+    // IMU pins
+  pinMode(PIN_IMU_X, INPUT);
+  pinMode(PIN_IMU_Y, INPUT);
+  pinMode(PIN_IMU_Z, INPUT);
+  pinMode(PIN_IMU_TEMP, INPUT);
+
   x = 0;
   y = 0;
   z = 0;
