@@ -29,9 +29,9 @@ int CommandProcessor::ReadNum()
 
 int CommandProcessor::GetCharBlocking()
 {
-  while ( Available() < 1 )
+  if ( Available() < 1 )
   {
-    delay( 100 );
+    delay( 10 );
   }
   return GetChar();
 }
