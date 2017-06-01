@@ -502,6 +502,7 @@ AvgIMU guide;
 
 Navigator nav( &guide);
 
+
 void setup()
 {
   // initialize the digital pin as an output.
@@ -526,21 +527,27 @@ void setup()
 
 }
 
+unsigned long elapsed=0;
 
 void loop()
 {
   Command& command = commandProcessor.GetCommand();
   nav.ProcessCommand(command);
-  
-  guide.ReadValues();
-  nav.Navigate();
 
-  if ( guide.HaveChange() )
+  unsigned long t = millis();
+  if( t - elapsed >= 10 )
   {
-    commandProcessor.DumpIMU(guide, nav._target_x, nav._target_y, nav._target_z);
-  }
+    guide.ReadValues();
+    nav.Navigate();
   
-  nav.DumpVoltageIfChanged();
+    if ( guide.HaveChange() )
+    {
+      commandProcessor.DumpIMU(guide, nav._target_x, nav._target_y, nav._target_z);
+    }
+    
+    nav.DumpVoltageIfChanged();
+    elapsed = t;
+  }
 
 
 }
