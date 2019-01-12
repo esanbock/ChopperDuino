@@ -23,7 +23,8 @@ public:
     NavigationOnOff,
     SetHome,
     Echo,
-    SetPid
+    SetPid,
+    Lift
   };
   enum CommandValueType
   {

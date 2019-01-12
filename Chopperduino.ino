@@ -26,6 +26,7 @@ const int PIN_SERVO_ELEVATOR = SERVO_PIN_C; // pin 4, SERVO_1
 const int PIN_VOLTAGE = 16;
 const int MIN_VOLTAGE = 590;
 const int PIN_LED = 11;
+
 const int PIN_RX = 7;
 const int PIN_TX = 8;
 
@@ -344,15 +345,22 @@ class Navigator
     {
       _currentThrottle = val;
       UpdateThrottle();
-      AdjustCollective();
+      //AdjustCollective();
       UpdatePitch();
       UpdateRoll();
-      commandProcessor.DumpCollective(_currentCollective);
     }
+
+    void Lift( int val )
+    {
+      _currentCollective = val;
+    }
+    
 
     void AdjustCollective()
     {
       _currentCollective =  _currentThrottle * 0.078431372549; //   ((SERVO_MAX - SERVO_STARTANGLE) / THROTTLE_MAX);
+      // commandProcessor.DumpCollective(_currentCollective);
+
     }
 
     bool IsLinkOk()
@@ -429,6 +437,10 @@ class Navigator
           SetThrottle( command.Value );
           break;
 
+        case Command::Lift:
+          Lift( command.Value );
+          break;
+ 
         case Command::Yaw:
           Yaw( command.Value );
           break;

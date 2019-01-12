@@ -179,6 +179,11 @@ Command& CommandProcessor::GetCommand()
           return _command;
         case 'Q':
           return ParsePidTuneCommand();
+        case 'L':
+          _command.CommandType = Command::Lift;
+          _command.Value = ReadNum();
+          _command.ChangeType = Command::Absolute;
+          return _command;
         default:
           PrintLine("NAK:");
           break;
