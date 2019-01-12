@@ -43,7 +43,8 @@ class Navigator
     PWMServo _rightServo;
     PWMServo _elevatorServo;
 
-    int _currentCollective;
+    int _currentCollective=0;
+    int _lastCollective=0;
 
     // servos
     double _currentAileron;
@@ -490,6 +491,11 @@ class Navigator
       // the pitch impacts the roll
       bool doRoll = AdjustRoll();
       bool doPitch = AdjustPitch();
+      if( _currentCollective != _lastCollective )
+      {
+        doRoll = doPitch = true;
+        _lastCollective = _currentCollective;
+      }
       if ( doRoll )
       {
         UpdateRoll();
@@ -563,10 +569,3 @@ void loop()
 
 
 }
-
-
-
-
-
-
-
